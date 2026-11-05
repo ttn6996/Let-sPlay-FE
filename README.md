@@ -19,6 +19,7 @@ Vite nạp `VITE_API_URL` và `VITE_PORT` từ `.env`. Cổng mặc định là 
 - Tạo phòng với tên hiển thị và thông tin buổi hẹn tùy chọn.
 - Tham gia phòng bằng mã mời.
 - Xem mã mời, vai trò và giai đoạn của phòng.
+- Kết nối SSE có Bearer token; tự reconnect và tải snapshot mới khi revision phòng thay đổi.
 - Token phiên khách và guest ID được giữ trong `sessionStorage` của tab hiện tại.
 
 Các luồng góp ý, bình chọn, sắp lịch và chia tiền chưa được triển khai.

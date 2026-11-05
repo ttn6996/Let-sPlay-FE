@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom'
-import { api, getApiError, getGuestId, getRoomToken, saveRoomSession, type Room, type RoomPreview } from './api'
+import { api, getApiError, getGuestId, getRoomToken, RealtimeRequestError, saveRoomSession, streamRoomEvents, type Room, type RoomPreview } from './api'
 
 type Mode = 'create' | 'join'
 
@@ -109,23 +109,70 @@ function RoomPage() {
   const { roomId = '' } = useParams()
   const [room, setRoom] = useState<Room | null>(null)
   const [error, setError] = useState('')
+  const [realtimeState, setRealtimeState] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting')
   const token = getRoomToken(roomId)
 
   useEffect(() => {
-    if (!token) {
-      return
+    if (token === null) return
+    const accessToken: string = token
+    const controller = new AbortController()
+    let stopped = false
+
+    async function connect() {
+      try {
+        const response = await api.get<Room>(`/rooms/${roomId}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+        if (stopped) return
+        setRoom(response.data)
+        let lastRevision = response.data.revision
+
+        while (!stopped) {
+          try {
+            await streamRoomEvents(roomId, accessToken, lastRevision, controller.signal,
+              () => setRealtimeState('connected'),
+              update => {
+                lastRevision = Math.max(lastRevision, update.revision)
+                setRealtimeState('connected')
+                void api.get<Room>(`/rooms/${roomId}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+                  .then(snapshot => {
+                    if (stopped) return
+                    lastRevision = Math.max(lastRevision, snapshot.data.revision)
+                    setRoom(current => !current || snapshot.data.revision >= current.revision ? snapshot.data : current)
+                  })
+              })
+            if (!stopped) throw new Error('Realtime stream closed')
+          } catch (streamError) {
+            if (stopped || controller.signal.aborted) return
+            if (streamError instanceof RealtimeRequestError && streamError.status >= 400 && streamError.status < 500 && streamError.status !== 408 && streamError.status !== 429) {
+              setRealtimeState('disconnected')
+              setError('Phiên realtime không còn hợp lệ. Hãy tải lại phòng hoặc tham gia lại bằng mã mời.')
+              return
+            }
+            setRealtimeState('reconnecting')
+            await new Promise(resolve => window.setTimeout(resolve, 1200))
+          }
+        }
+      } catch (requestError) {
+        if (!stopped) {
+          setRealtimeState('disconnected')
+          setError(getApiError(requestError))
+        }
+      }
     }
-    api.get<Room>(`/rooms/${roomId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(response => setRoom(response.data))
-      .catch(requestError => setError(getApiError(requestError)))
+
+    void connect()
+    return () => {
+      stopped = true
+      controller.abort()
+    }
   }, [roomId, token])
 
   if (error || !token) return <main className="room-shell"><Link className="brand" to="/"><span className="brand-mark">k</span><span>Kèo</span></Link><section className="room-state"><span className="state-icon">↗</span><h1>Chưa vào được phòng</h1><p>{error || 'Không tìm thấy phiên trong tab này. Hãy tham gia lại bằng mã mời.'}</p><Link className="primary-button link-button" to="/">Về trang đầu <span>→</span></Link></section></main>
   if (!room) return <main className="room-shell"><Link className="brand" to="/"><span className="brand-mark">k</span><span>Kèo</span></Link><p className="loading-state">Đang mở phòng…</p></main>
 
-  return <main className="room-shell"><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">k</span><span>Kèo</span></Link><span className="room-member">Đang vào với tên <strong>{room.member.displayName}</strong></span></header>
+  const realtimeLabel = realtimeState === 'connected' ? 'Đang đồng bộ' : realtimeState === 'reconnecting' ? 'Đang kết nối lại' : realtimeState === 'disconnected' ? 'Mất kết nối' : 'Đang kết nối'
+  return <main className="room-shell"><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">k</span><span>Kèo</span></Link><span className="room-member"><span className={`connection-pill ${realtimeState}`} role="status"><i />{realtimeLabel}</span>Đang vào với tên <strong>{room.member.displayName}</strong></span></header>
     <section className="room-welcome"><p className="eyebrow"><span className="status-dot" /> PHÒNG ĐANG MỞ</p><h1>{room.name}</h1><p>Chào {room.member.displayName}, phòng đã sẵn sàng để cả nhóm cùng lên kế hoạch.</p>
-      <div className="room-facts"><div><span>VAI TRÒ CỦA BẠN</span><strong>{room.member.role === 'HOST' ? 'Chủ phòng' : 'Thành viên'}</strong></div><div><span>MÃ MỜI BẠN BÈ</span><strong className="invite-code">{room.inviteCode}</strong></div><div><span>GIAI ĐOẠN</span><strong>Góp ý</strong></div></div>
+      <div className="room-facts"><div><span>VAI TRÒ CỦA BẠN</span><strong>{room.member.role === 'HOST' ? 'Chủ phòng' : 'Thành viên'}</strong></div><div><span>THÀNH VIÊN</span><strong>{room.memberCount}</strong></div><div><span>MÃ MỜI BẠN BÈ</span><strong className="invite-code">{room.inviteCode}</strong></div><div><span>GIAI ĐOẠN</span><strong>Góp ý</strong></div></div>
       <p className="coming-soon">Các bước góp ý và lên lịch sẽ được nối tiếp trong phần triển khai tiếp theo.</p><Link to="/" className="text-link">← Trang đầu</Link>
     </section>
   </main>
