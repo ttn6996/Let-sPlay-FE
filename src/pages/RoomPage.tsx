@@ -51,13 +51,23 @@ export default function RoomPage() {
   async function copyInviteCode(){try{await copyText(room?.inviteCode??'');setCopied(true);window.setTimeout(()=>setCopied(false),1800)}catch{setActionError('Không thể sao chép mã mời.')}}
 
   function selectedProposal(){return room?.proposals.find(proposal=>proposal.id===room.selectedProposalId)??null}
-  function calendarStart(value:string|null){if(room?.eventDate)return new Date(`${room.eventDate}T${room.eventTime??'19:00'}`);if(value)return new Date(value);return null}
+  function calendarStart(value:string|null){
+    if(room?.eventDate&&room.eventTime)return new Date(`${room.eventDate}T${room.eventTime}`)
+    if(room?.eventDate&&value)return new Date(`${room.eventDate}T${value.slice(11,16)}`)
+    if(value)return new Date(value)
+    return null
+  }
+  function calendarDay(value:string){return value.replaceAll('-','')}
+  function calendarNextDay(value:string){const [year,month,day]=value.split('-').map(Number);const next=new Date(year,month-1,day+1);return `${next.getFullYear()}${String(next.getMonth()+1).padStart(2,'0')}${String(next.getDate()).padStart(2,'0')}`}
   function addCalendar(){
     const proposal=selectedProposal();if(!proposal)return
     const start=calendarStart(proposal.scheduledTime);const end=start?new Date(start.getTime()+60*60*1000):null
     const format=(date:Date)=>date.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z')
-    const params=new URLSearchParams({action:'TEMPLATE',text:proposal.title,details:proposal.description??`Cuộc hẹn: ${room?.name??''}`})
-    if(start&&end)params.set('dates',`${format(start)}/${format(end)}`)
+    const details=[proposal.description,room?.region?`Khu vực: ${room.region}`:null].filter(Boolean).join('\n')||`Cuộc hẹn: ${room?.name??''}`
+    const params=new URLSearchParams({action:'TEMPLATE',text:proposal.title,details})
+    if(room?.eventDate&&!room.eventTime&&!proposal.scheduledTime)params.set('dates',`${calendarDay(room.eventDate)}/${calendarNextDay(room.eventDate)}`)
+    else if(start&&end)params.set('dates',`${format(start)}/${format(end)}`)
+    if(room?.region)params.set('location',room.region)
     window.open(`https://calendar.google.com/calendar/render?${params.toString()}`,'_blank','noopener,noreferrer')
   }
   function downloadCalendar(){
@@ -66,8 +76,10 @@ export default function RoomPage() {
     const format=(date:Date)=>date.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z')
     const escape=(text:string)=>text.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;')
     const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LetsPlay//Room Planner//VI','BEGIN:VEVENT',`UID:${proposal.id}@letsplay`,`DTSTAMP:${format(new Date())}`]
-    if(start&&end)lines.push(`DTSTART:${format(start)}`,`DTEND:${format(end)}`)
+    if(room?.eventDate&&!room.eventTime&&!proposal.scheduledTime)lines.push(`DTSTART;VALUE=DATE:${calendarDay(room.eventDate)}`,`DTEND;VALUE=DATE:${calendarNextDay(room.eventDate)}`)
+    else if(start&&end)lines.push(`DTSTART:${format(start)}`,`DTEND:${format(end)}`)
     lines.push(`SUMMARY:${escape(proposal.title)}`,`DESCRIPTION:${escape(proposal.description??room?.name??'')}`,'END:VEVENT','END:VCALENDAR')
+    if(room?.region)lines.splice(lines.length-2,0,`LOCATION:${escape(room.region)}`)
     const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`letsplay-${proposal.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.ics`;anchor.click();URL.revokeObjectURL(url)
   }
 
@@ -105,7 +117,7 @@ export default function RoomPage() {
     <section className="room-welcome"><div className="room-heading"><div><p className="eyebrow"><span className="status-dot" /> PHÒNG ĐANG MỞ</p><h1>{room.name}</h1><p>Chào {room.member.displayName}, cùng nhau chốt một cuộc vui.</p></div><div className="invite-actions"><button type="button" className="secondary-button" onClick={()=>void copyInvite()}>{copied?'Đã sao chép!':'Sao chép link mời'}</button><button type="button" className="secondary-button" onClick={()=>void copyInviteCode()}>Sao chép mã</button><button type="button" className="secondary-button" onClick={()=>setQrOpen(open=>!open)}>{qrOpen?'Ẩn QR':'Mã QR'}</button></div></div>
       {qrOpen&&<div className="qr-panel"><QRCodeSVG value={inviteUrl} size={180} includeMargin/><span>Quét mã để xem trước và tham gia phòng</span></div>}
       <div className="room-facts"><div><span>VAI TRÒ CỦA BẠN</span><strong>{room.member.role==='HOST'?'Chủ phòng':'Thành viên'}</strong></div><div><span>THÀNH VIÊN</span><strong>{room.memberCount}</strong></div><div><span>ĐANG TRỰC TUYẾN</span><strong>{onlineCount}/{room.memberCount}</strong></div><div><span>GIAI ĐOẠN</span><strong>{phaseLabel}</strong></div></div>
-      {room.eventDate&&<p className="room-schedule-summary">Giờ dự kiến: <strong>{new Date(`${room.eventDate}T${room.eventTime??'19:00'}`).toLocaleString('vi-VN',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</strong></p>}
+      {(room.eventDate||room.eventTime||room.region)&&<section className="room-details-card" aria-label="Thông tin cuộc hẹn"><p className="eyebrow">THÔNG TIN CUỘC HẸN</p><div className="room-details-items">{(room.eventDate||room.eventTime)&&<div className="room-detail-item"><span className="room-detail-icon">◷</span><span><small>THỜI GIAN DỰ KIẾN</small><strong>{room.eventDate?new Date(`${room.eventDate}T${room.eventTime??'12:00'}`).toLocaleString('vi-VN',room.eventTime?{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}:{weekday:'long',day:'numeric',month:'long'}):`${room.eventTime} · chưa chọn ngày`}</strong></span></div>}{room.region&&<a className="room-detail-item room-location-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(room.region)}`} target="_blank" rel="noreferrer"><span className="room-detail-icon">⌖</span><span><small>ĐỊA ĐIỂM / KHU VỰC</small><strong>{room.region}</strong><em>Mở Google Maps ↗</em></span></a>}</div></section>}
       <div className="notification-controls"><div><strong>Thông báo luôn bật trong phòng</strong><span>Bạn sẽ nhận báo realtime khi có đề xuất mới. Thông báo đẩy tự đăng ký nếu đã cho phép trên trình duyệt.</span></div><span className="notification-on-badge">● ĐANG BẬT</span></div>
       {token&&<AvailabilityPanel room={room} roomId={roomId} token={token} onRoom={updated=>{if(updated.revision>=currentRevisionRef.current){currentRevisionRef.current=updated.revision;setRoom(updated)}}}/>}
       {room.phase==='FINALIZED'&&selectedProposal()&&<section className="finalized-banner"><div><span>CUỘC HẸN ĐÃ ĐƯỢC CHỐT</span><h2>{selectedProposal()!.title}</h2><p>{selectedProposal()!.description}{selectedProposal()!.scheduledTime&&` · ${new Date(selectedProposal()!.scheduledTime!).toLocaleString('vi-VN',{dateStyle:'medium',timeStyle:'short'})}`}</p></div><div><button className="secondary-button" onClick={addCalendar}>Thêm vào Google Calendar</button><button className="secondary-button" onClick={downloadCalendar}>Tải lịch (.ics)</button></div></section>}
