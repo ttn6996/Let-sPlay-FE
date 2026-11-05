@@ -33,6 +33,7 @@
 .finalized-banner{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:20px 0;padding:20px;border:1px solid #cddfc9;border-radius:12px;background:linear-gradient(120deg,#f0f7ed,#fffdf8)}.finalized-banner>div:first-child>span{color:#6e876b;font-size:9px;letter-spacing:1px;font-weight:700}.finalized-banner h2{margin:7px 0;color:#2e4d36;font-family:'Playfair Display',serif;font-size:22px}.finalized-banner p{margin:0;color:#73796e;font-size:11px}.finalized-banner>div:last-child{display:grid;gap:7px}
 .members-panel{margin:22px 0;padding:15px 0;border-bottom:1px solid #ece9df}.members-heading{display:flex;justify-content:space-between;color:#354a39;font-size:11px}.members-heading span{color:#67816b}.members-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.room-member-chip{display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #e8e8df;border-radius:999px;background:#fff;color:#4b564a;font-size:10px}.room-member-chip small{color:#92948a;font-size:8px}.room-member-chip button{border:0;background:transparent;color:#a34438;font-size:9px;cursor:pointer}.online-dot{width:7px;height:7px;border-radius:50%;background:#b7b9b1}.online-dot.is-online{background:#4d9b5b;box-shadow:0 0 0 3px #e3f0e4}
 .proposal-card-actions{display:flex;align-items:center;gap:6px}.mini-action{padding:7px 9px;border:1px solid #e4e5dc;border-radius:6px;background:#fff;color:#56705a;font-size:9px;cursor:pointer}.mini-action.danger{color:#a34438}.top-pick-badge{padding:4px 6px;border-radius:5px;background:#f7ead8;color:#9b6b2d;font:700 8px 'DM Sans',sans-serif;letter-spacing:.5px}.vote-progress{display:grid;gap:5px;margin-top:13px}.vote-progress>div{display:flex;justify-content:space-between;color:#85877d;font-size:9px}.vote-progress>i{height:5px;overflow:hidden;border-radius:999px;background:#edf0e8}.vote-progress>i>b{display:block;height:100%;border-radius:999px;background:#6f966e;transition:width .2s ease}.proposal-edit-form{display:grid;gap:10px}.proposal-edit-form label{display:grid;gap:5px;color:#687166;font-size:9px}.proposal-edit-form input{height:36px;padding:0 9px;border:1px solid #e4e5dc;border-radius:6px;font:inherit}.proposal-edit-actions{display:flex;gap:8px}.proposal-edit-actions .primary-button{height:36px}
+.voting-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px}.voting-controls .finalize-control{flex:1}
 @media(max-width:700px){.room-welcome{padding:26px 20px}.room-heading{display:grid}.invite-actions{justify-content:flex-start}.finalized-banner{align-items:stretch;flex-direction:column}.finalized-banner>div:last-child{grid-template-columns:1fr 1fr}.proposal-card-title{flex-direction:column}}
 
 /* Small-screen layout and touch targets */
@@ -84,6 +85,8 @@
   .host-controls>div:first-child span{font-size:11px;line-height:1.5}
   .host-controls .primary-button{min-width:0}
   .finalize-control{width:100%;gap:8px}
+  .voting-controls{width:100%;align-items:stretch;flex-direction:column}
+  .voting-controls>.secondary-button{width:100%}
   .finalize-control select{width:100%;font-size:14px}
   .proposal-form{gap:11px;margin:18px 0;padding:15px 12px}
   .proposal-form h2,.proposal-section h2{font-size:19px}
