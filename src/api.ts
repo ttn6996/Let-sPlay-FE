@@ -1,4 +1,6 @@
 import axios from 'axios'
+import type { Account, AuthResponse, Room, RoomPreview } from './types'
+export type { Account, AuthResponse, Proposal, Room, RoomPreview, SavedRoom } from './types'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8082/api',
@@ -6,27 +8,6 @@ export const api = axios.create({
   timeout: 10000,
 })
 
-export type Room = {
-  id: string
-  name: string
-  inviteCode: string
-  phase: string
-  status: string
-  eventDate: string | null
-  eventTime: string | null
-  region: string | null
-  createdAt: string
-  revision: number
-  memberCount: number
-  member: { id: string; displayName: string; role: 'HOST' | 'MEMBER' }
-  accessToken: string | null
-}
-
-export type RoomPreview = Pick<Room, 'id' | 'name' | 'inviteCode' | 'status' | 'eventDate' | 'eventTime' | 'region'>
-
-export type Account = { id: string; email: string; displayName: string }
-export type AuthResponse = { accessToken: string; expiresAt: string; account: Account }
-export type SavedRoom = Omit<Room, 'member' | 'accessToken'> & { role: 'HOST' | 'MEMBER' }
 const accountTokenKey = 'letsplay.accountToken'
 export function getAccountToken() { return localStorage.getItem(accountTokenKey) }
 export function saveAuth(auth: AuthResponse) { localStorage.setItem(accountTokenKey, auth.accessToken); localStorage.setItem('letsplay.account', JSON.stringify(auth.account)) }
@@ -54,6 +35,28 @@ export function getRoomToken(roomId: string) {
 
 export function forgetAuth() { localStorage.removeItem(accountTokenKey); localStorage.removeItem('letsplay.account') }
 
+export function getRoom(roomId: string, token: string, signal?: AbortSignal) {
+  return api.get<Room>(`/rooms/${encodeURIComponent(roomId)}`, { headers: { Authorization: `Bearer ${token}` }, signal })
+}
+export function previewRoom(inviteCode: string) {
+  return api.post<RoomPreview>('/rooms/preview', { inviteCode: inviteCode.trim().toUpperCase() })
+}
+export function claimRoom(roomId: string, accountToken: string, guestToken: string) {
+  return api.post(`/rooms/${encodeURIComponent(roomId)}/claim`, {}, { headers: { Authorization: `Bearer ${accountToken}`, 'X-Guest-Token': guestToken } })
+}
+export function createProposal(roomId: string, payload: { title: string; description?: string; scheduledTime?: string | null }, token: string) {
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals`, payload, { headers: { Authorization: `Bearer ${token}` } })
+}
+export function toggleVote(roomId: string, proposalId: string, token: string) {
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}/vote`, {}, { headers: { Authorization: `Bearer ${token}` } })
+}
+export function updateRoomPhase(roomId: string, payload: { phase: string; selectedProposalId?: string | null }, token: string) {
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/phase`, payload, { headers: { Authorization: `Bearer ${token}` } })
+}
+export function leaveRoom(roomId: string, token: string) {
+  return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } })
+}
+
 export type RoomUpdate = { roomId: string; revision: number; changedAt: string }
 
 export class RealtimeRequestError extends Error {
@@ -78,14 +81,13 @@ export async function streamRoomEvents(
     headers: {
       Accept: 'text/event-stream',
       Authorization: `Bearer ${token}`,
-      'Last-Event-ID': String(lastRevision),
+      ...(lastRevision > 0 ? { 'Last-Event-ID': String(lastRevision) } : {}),
     },
     signal,
   })
   if (!response.ok) throw new RealtimeRequestError(response.status)
   if (!response.body) throw new Error('Realtime stream has no response body')
 
-  onReady()
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -95,17 +97,17 @@ export async function streamRoomEvents(
       const { done, value } = await reader.read()
       if (done) return
       buffer += decoder.decode(value, { stream: true })
-      buffer = buffer.replace(/\r\n/g, '\n')
-      let boundary = buffer.indexOf('\n\n')
+      let boundary = buffer.search(/\r?\n\r?\n/)
       while (boundary >= 0) {
         const frame = buffer.slice(0, boundary)
-        buffer = buffer.slice(boundary + 2)
-        const lines = frame.split('\n')
+        const delimiter = buffer.slice(boundary).match(/^\r?\n\r?\n/)?.[0].length ?? 2
+        buffer = buffer.slice(boundary + delimiter)
+        const lines = frame.split(/\r?\n/)
         const eventName = lines.find(line => line.startsWith('event:'))?.slice(6).trim()
         const data = lines.filter(line => line.startsWith('data:')).map(line => line.slice(5).trim()).join('\n')
         if (eventName === 'ready') onReady()
         if (eventName === 'room.updated' && data) onUpdate(JSON.parse(data) as RoomUpdate)
-        boundary = buffer.indexOf('\n\n')
+        boundary = buffer.search(/\r?\n\r?\n/)
       }
     }
   } finally {
