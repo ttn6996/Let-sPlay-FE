@@ -5,6 +5,7 @@ import { useRoomRealtime } from '../hooks/useRoomRealtime'
 import { ConnectionStatus } from '../components/ConnectionStatus'
 import { QRCodeSVG } from 'qrcode.react'
 import { enableRoomNotifications, unlockNotificationSound } from '../notifications'
+import { AvailabilityPanel } from '../components/AvailabilityPanel'
 
 export default function RoomPage() {
   const { roomId = '' } = useParams()
@@ -50,7 +51,7 @@ export default function RoomPage() {
   async function copyInviteCode(){try{await copyText(room?.inviteCode??'');setCopied(true);window.setTimeout(()=>setCopied(false),1800)}catch{setActionError('Không thể sao chép mã mời.')}}
 
   function selectedProposal(){return room?.proposals.find(proposal=>proposal.id===room.selectedProposalId)??null}
-  function calendarStart(value:string|null){if(value)return new Date(value);if(room?.eventDate)return new Date(`${room.eventDate}T${room.eventTime??'19:00'}`);return null}
+  function calendarStart(value:string|null){if(room?.eventDate)return new Date(`${room.eventDate}T${room.eventTime??'19:00'}`);if(value)return new Date(value);return null}
   function addCalendar(){
     const proposal=selectedProposal();if(!proposal)return
     const start=calendarStart(proposal.scheduledTime);const end=start?new Date(start.getTime()+60*60*1000):null
@@ -103,7 +104,9 @@ export default function RoomPage() {
     <section className="room-welcome"><div className="room-heading"><div><p className="eyebrow"><span className="status-dot" /> PHÒNG ĐANG MỞ</p><h1>{room.name}</h1><p>Chào {room.member.displayName}, cùng nhau chốt một cuộc vui.</p></div><div className="invite-actions"><button type="button" className="secondary-button" onClick={()=>void copyInvite()}>{copied?'Đã sao chép!':'Sao chép link mời'}</button><button type="button" className="secondary-button" onClick={()=>void copyInviteCode()}>Sao chép mã</button><button type="button" className="secondary-button" onClick={()=>setQrOpen(open=>!open)}>{qrOpen?'Ẩn QR':'Mã QR'}</button></div></div>
       {qrOpen&&<div className="qr-panel"><QRCodeSVG value={inviteUrl} size={180} includeMargin/><span>Quét mã để xem trước và tham gia phòng</span></div>}
       <div className="room-facts"><div><span>VAI TRÒ CỦA BẠN</span><strong>{room.member.role==='HOST'?'Chủ phòng':'Thành viên'}</strong></div><div><span>THÀNH VIÊN</span><strong>{room.memberCount}</strong></div><div><span>ĐANG TRỰC TUYẾN</span><strong>{onlineCount}/{room.memberCount}</strong></div><div><span>GIAI ĐOẠN</span><strong>{phaseLabel}</strong></div></div>
+      {room.eventDate&&<p className="room-schedule-summary">Giờ dự kiến: <strong>{new Date(`${room.eventDate}T${room.eventTime??'19:00'}`).toLocaleString('vi-VN',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</strong></p>}
       <div className="notification-controls"><div><strong>Thông báo hoạt động mới</strong><span>Nhận báo khi có người thêm đề xuất. Rung và âm báo tùy trình duyệt.</span>{notificationMessage&&<small role="status">{notificationMessage}</small>}</div><button type="button" className="secondary-button" onClick={()=>void onEnableNotifications()}>{pushEnabled?'Đã bật thông báo':'Bật thông báo đẩy'}</button></div>
+      {token&&<AvailabilityPanel room={room} roomId={roomId} token={token} onRoom={updated=>{if(updated.revision>=currentRevisionRef.current){currentRevisionRef.current=updated.revision;setRoom(updated)}}}/>}
       {room.phase==='FINALIZED'&&selectedProposal()&&<section className="finalized-banner"><div><span>CUỘC HẸN ĐÃ ĐƯỢC CHỐT</span><h2>{selectedProposal()!.title}</h2><p>{selectedProposal()!.description}{selectedProposal()!.scheduledTime&&` · ${new Date(selectedProposal()!.scheduledTime!).toLocaleString('vi-VN',{dateStyle:'medium',timeStyle:'short'})}`}</p></div><div><button className="secondary-button" onClick={addCalendar}>Thêm vào Google Calendar</button><button className="secondary-button" onClick={downloadCalendar}>Tải lịch (.ics)</button></div></section>}
       <section className="members-panel"><div className="members-heading"><strong>Thành viên</strong><span>{onlineCount}/{room.memberCount} đang online</span></div><div className="members-list">{room.members.map(member=><div className="room-member-chip" key={member.id}><span className={`online-dot ${member.online?'is-online':''}`} />{member.displayName}<small>{member.role==='HOST'?'Chủ phòng':'Thành viên'}</small>{room.member.role==='HOST'&&member.id!==room.member.id&&<button type="button" onClick={()=>void onKick(member.id)}>Mời ra</button>}</div>)}</div></section>
       {proposalNotice&&<div className="proposal-notice" role="status"><span>✳</span><div><strong>Đề xuất mới</strong><p>{proposalNotice}</p></div><button type="button" aria-label="Đóng thông báo" onClick={()=>setProposalNotice('')}>×</button></div>}
