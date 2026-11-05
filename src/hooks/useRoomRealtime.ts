@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { claimRoom, getAccountToken, getApiError, getRoom, getRoomToken, RealtimeRequestError, streamRoomEvents, type Room } from '../api'
 
+declare global { interface Window { __letsPlayAudioContext?: AudioContext } }
+
 export function useRoomRealtime(roomId: string, token: string | null) {
   const [room,setRoom]=useState<Room|null>(null)
   const [error,setError]=useState('')
+  const [proposalNotice,setProposalNotice]=useState('')
   const [realtimeState,setRealtimeState]=useState<'connecting'|'connected'|'reconnecting'|'disconnected'>('connecting')
   const currentRevisionRef=useRef(0)
   const snapshotControllerRef=useRef<AbortController|null>(null)
@@ -41,6 +44,10 @@ export function useRoomRealtime(roomId: string, token: string | null) {
                   lastRevision=Math.max(lastRevision,snapshot.data.revision)
                   if(snapshot.data.revision>=currentRevisionRef.current){currentRevisionRef.current=snapshot.data.revision;setRoom(snapshot.data)}
                 }).catch(()=>undefined)
+              },notice=>{
+                setProposalNotice(notice.title)
+                if('vibrate' in navigator)navigator.vibrate?.([120,60,120])
+                try{const audio=window.__letsPlayAudioContext;if(audio?.state==='running'){const oscillator=audio.createOscillator();const gain=audio.createGain();oscillator.frequency.value=740;gain.gain.value=0.07;oscillator.connect(gain);gain.connect(audio.destination);oscillator.start();oscillator.stop(audio.currentTime+0.16)}}catch{/* Audio may be unavailable or blocked until a user gesture. */}
               })
             if(!stopped)throw new Error('Realtime stream closed')
           }catch(streamError){
@@ -56,5 +63,5 @@ export function useRoomRealtime(roomId: string, token: string | null) {
     return()=>{stopped=true;controller.abort();snapshotControllerRef.current?.abort()}
   },[roomId,token])
 
-  return {room,setRoom,error,realtimeState,currentRevisionRef}
+  return {room,setRoom,error,realtimeState,currentRevisionRef,proposalNotice,setProposalNotice}
 }

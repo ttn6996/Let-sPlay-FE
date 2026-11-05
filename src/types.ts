@@ -18,7 +18,7 @@ export type Room = {
 }
 
 export type RoomMember = { id: string; displayName: string; role: 'HOST' | 'MEMBER'; online: boolean }
-export type Proposal = { id: string; createdByMembershipId: string | null; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { membershipId: string; displayName: string }[]; votedByMe: boolean }
+export type Proposal = { id: string; createdByMe: boolean; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { displayName: string }[]; votedByMe: boolean }
 export type RoomPreview = Pick<Room, 'id' | 'name' | 'inviteCode' | 'status' | 'phase' | 'memberCount' | 'eventDate' | 'eventTime' | 'region'>
 export type Account = { id: string; email: string; displayName: string }
 export type AuthResponse = { accessToken: string; expiresAt: string; account: Account }

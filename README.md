@@ -23,3 +23,7 @@ Vite nạp `VITE_API_URL` và `VITE_PORT` từ `.env`. Cổng mặc định là 
 - Token phiên khách và guest ID được giữ trong `sessionStorage` của tab hiện tại.
 
 Các luồng góp ý, bình chọn, sắp lịch và chia tiền chưa được triển khai.
+
+## Quyền riêng tư và thông báo phòng
+
+Trong response phòng, tên của thành viên khác được thay bằng nhãn ẩn danh; proposal chỉ trả `createdByMe`, còn phiếu của bạn hiện là “Bạn” và phiếu khác hiện “Ẩn danh”. Khi có đề xuất mới, phòng đang mở hiện toast kèm âm/rung best effort. Nút **Bật thông báo đẩy** đăng ký Web Push cho thiết bị hiện tại; cần cấp quyền trình duyệt và backend phải có VAPID keys.

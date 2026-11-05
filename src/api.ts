@@ -50,6 +50,10 @@ export function forgetAuth() { localStorage.removeItem(accountTokenKey); localSt
 export function getRoom(roomId: string, token: string, signal?: AbortSignal) {
   return api.get<Room>(`/rooms/${encodeURIComponent(roomId)}`, { headers: { Authorization: `Bearer ${token}` }, signal })
 }
+export function getPushConfig(){return api.get<{vapidPublicKey:string}>('/system/public-config')}
+export function savePushSubscription(roomId:string,token:string,subscription:PushSubscription){
+  return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/push-subscriptions`,subscription.toJSON(),{headers:{Authorization:`Bearer ${token}`}})
+}
 export function previewRoom(inviteCode: string) {
   return api.post<RoomPreview>('/rooms/preview', { inviteCode: inviteCode.trim().toUpperCase() })
 }
@@ -79,6 +83,7 @@ export function kickMember(roomId:string,membershipId:string,token:string){
 }
 
 export type RoomUpdate = { roomId: string; revision: number; changedAt: string; eventType?: 'revision'|'presence' }
+export type ProposalCreatedUpdate = {roomId:string;proposalId:string;title:string;createdAt:string}
 
 export class RealtimeRequestError extends Error {
   readonly status: number
@@ -96,6 +101,7 @@ export async function streamRoomEvents(
   signal: AbortSignal,
   onReady: () => void,
   onUpdate: (update: RoomUpdate) => void,
+  onProposalCreated: (update:ProposalCreatedUpdate)=>void = ()=>undefined,
 ) {
   const baseUrl = api.defaults.baseURL ?? 'http://localhost:8082/api'
   const response = await fetch(`${baseUrl.replace(/\/$/, '')}/rooms/${encodeURIComponent(roomId)}/events`, {
@@ -129,6 +135,7 @@ export async function streamRoomEvents(
         if (eventName === 'ready') onReady()
         if (eventName === 'room.updated' && data) onUpdate({ ...(JSON.parse(data) as RoomUpdate),eventType:'revision' })
         if (eventName === 'room.presence' && data) onUpdate({ ...(JSON.parse(data) as RoomUpdate),eventType:'presence' })
+        if (eventName === 'room.proposal-created' && data) onProposalCreated(JSON.parse(data) as ProposalCreatedUpdate)
         boundary = buffer.search(/\r?\n\r?\n/)
       }
     }
