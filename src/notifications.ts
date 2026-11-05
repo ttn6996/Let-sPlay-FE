@@ -1,6 +1,19 @@
 import { getPushConfig, savePushSubscription } from './api'
 
 let audioContext: AudioContext | null = null
+let vapidKeyRequest:Promise<string>|null=null
+
+export function preloadPushConfig(){
+  vapidKeyRequest??=getPushConfig().then(response=>response.data.vapidPublicKey).catch(()=> '')
+  return vapidKeyRequest
+}
+
+export async function requestRoomPushPermission(){
+  if(!('Notification' in window)||!('PushManager' in window)||!('serviceWorker' in navigator))return false
+  if(Notification.permission==='granted')return true
+  if(Notification.permission==='denied'||!await preloadPushConfig())return false
+  try{return await Notification.requestPermission()==='granted'}catch{return false}
+}
 
 export function unlockNotificationSound(){
   try{
@@ -22,12 +35,11 @@ function decodeVapidKey(value:string){
 }
 
 export async function enableRoomNotifications(roomId:string,token:string){
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('Trình duyệt này chưa hỗ trợ thông báo đẩy.')
-  const {data}=await getPushConfig()
-  if(!data.vapidPublicKey)throw new Error('Máy chủ chưa cấu hình khóa Web Push. Thông báo trong phòng vẫn hoạt động.')
-  const permission=await Notification.requestPermission()
-  if(permission!=='granted')throw new Error('Bạn chưa cho phép gửi thông báo trên trình duyệt.')
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)||Notification.permission!=='granted')return false
+  const vapidPublicKey=await preloadPushConfig()
+  if(!vapidPublicKey)return false
   const registration=await navigator.serviceWorker.register('/sw.js')
-  const subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeVapidKey(data.vapidPublicKey) as BufferSource})
+  const subscription=await registration.pushManager.getSubscription()??await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeVapidKey(vapidPublicKey) as BufferSource})
   await savePushSubscription(roomId,token,subscription)
+  return true
 }

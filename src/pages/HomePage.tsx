@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getGuestRoomSessions, getMyRooms, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type MyRoomSummary, type Room, type RoomPreview } from '../api'
+import { enableRoomNotifications, preloadPushConfig, requestRoomPushPermission, unlockNotificationSound } from '../notifications'
 
 type Mode = 'create' | 'join'
 
@@ -26,6 +27,7 @@ export default function HomePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    void preloadPushConfig()
     const token = getAccountToken()
     const guestTokens=getGuestRoomSessions().map(session=>session.token)
     void getMyRooms(token,guestTokens).then(response=>setRooms(response.data)).catch(()=>{if(token){forgetAuth();setAccount(null)}})
@@ -70,6 +72,8 @@ export default function HomePage() {
         setPreview(response.data)
         return
       }
+      unlockNotificationSound()
+      const canPush=await requestRoomPushPermission()
       const createRequestId = mode === 'create'
         ? requestId || crypto.randomUUID()
         : ''
@@ -93,6 +97,7 @@ export default function HomePage() {
           inviteCode: preview?.inviteCode ?? inviteCode.trim().toUpperCase(),
         }, { headers: { Authorization: `Bearer ${getAccountToken()}` } })
       saveRoomSession(response.data)
+      if(canPush){const roomToken=response.data.accessToken??getAccountToken();if(roomToken)void enableRoomNotifications(response.data.id,roomToken).catch(()=>undefined)}
       sessionStorage.removeItem('letsplay.pendingCreate')
       setRequestId('')
       navigate(`/rooms/${response.data.id}`)

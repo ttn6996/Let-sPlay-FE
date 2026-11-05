@@ -87,6 +87,9 @@ export function updateProposal(roomId:string,proposalId:string,payload:{title:st
 export function deleteProposal(roomId:string,proposalId:string,token:string){
   return api.delete<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}`,{headers:{Authorization:`Bearer ${token}`}})
 }
+export function setProposalCompleted(roomId:string,proposalId:string,completed:boolean,token:string){
+  return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}/completion`,{completed},{headers:{Authorization:`Bearer ${token}`}})
+}
 export function kickMember(roomId:string,membershipId:string,token:string){
   return api.delete<void>(`/rooms/${encodeURIComponent(roomId)}/members/${encodeURIComponent(membershipId)}`,{headers:{Authorization:`Bearer ${token}`}})
 }

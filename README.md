@@ -26,7 +26,7 @@ Các luồng góp ý, bình chọn, sắp lịch và chia tiền chưa được 
 
 ## Quyền riêng tư và thông báo phòng
 
-Trong response phòng, tên của thành viên khác được thay bằng nhãn ẩn danh; proposal chỉ trả `createdByMe`, còn phiếu của bạn hiện là “Bạn” và phiếu khác hiện “Ẩn danh”. Khi có đề xuất mới, phòng đang mở hiện toast kèm âm/rung best effort. Nút **Bật thông báo đẩy** đăng ký Web Push cho thiết bị hiện tại; cần cấp quyền trình duyệt và backend phải có VAPID keys.
+Trong response phòng, tên của thành viên khác được thay bằng nhãn ẩn danh; proposal chỉ trả `createdByMe`, còn phiếu của bạn hiện là “Bạn” và phiếu khác hiện “Ẩn danh”. Khi có đề xuất mới, phòng đang mở hiện toast kèm âm/rung best effort. Thông báo realtime trong phòng luôn hoạt động. Khi VAPID keys được cấu hình, app sẽ tự xin quyền trình duyệt lúc tạo/tham gia phòng và đăng ký Web Push nếu người dùng cho phép.
 
 ## Tìm giờ phù hợp
 
