@@ -9,3 +9,13 @@
 @media(max-width:900px){.home-shell,.room-shell{padding:0 5%}.hero-grid{grid-template-columns:minmax(0,1fr) 400px;gap:5%;margin-top:56px}.hero-copy h1{font-size:47px}}
 @media(max-width:700px){.home-shell,.room-shell{padding:0 20px}.topbar{height:68px}.top-note{max-width:150px;text-align:right;font-size:10px}.hero-grid{display:flex;flex-direction:column;align-items:stretch;gap:30px;margin:38px auto 36px}.hero-copy{padding:0}.hero-copy h1{font-size:41px;margin:17px 0 13px}.hero-description{font-size:13px;line-height:1.7}.hero-footnote{margin-top:22px}.entry-card{padding:23px 20px 17px}.home-footer{height:auto;min-height:64px;gap:10px;font-size:9px}.home-footer span:last-child{text-align:right}.room-welcome{margin:9vh auto 0;padding:28px 22px}.room-welcome h1{font-size:34px}.room-facts{grid-template-columns:1fr 1fr}.room-facts div:last-child{grid-column:1/-1}.room-member{max-width:180px;text-align:right;font-size:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}.connection-pill.reconnecting i{animation:none}}
+/* Account and saved room controls */
+.account-form{margin:20px 0;padding:18px;background:#f8f7f2;border:1px solid #ece9df;border-radius:12px}
+.account-form h3,.saved-rooms h3{margin:0 0 7px;font-size:15px;color:#293c30}
+.account-form>p{margin:0 0 14px;color:#777b70;font-size:12px;line-height:1.5}
+.account-form .mode-switch{margin:12px 0}
+.account-banner{display:flex;justify-content:space-between;align-items:center;margin:16px 0;padding:12px 14px;border-radius:10px;background:#f1f2e9;color:#687166;font-size:12px}
+.account-banner button{border:0;background:transparent;color:#a36549;font-weight:600;cursor:pointer}
+.saved-rooms{margin:18px 0}
+.saved-room{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:12px 14px;border:1px solid #ece9df;border-radius:10px;background:#fff}
+.saved-room span{display:grid;gap:4px}.saved-room strong{font-size:12px}.saved-room small{color:#85877e;font-size:10px}.saved-room>b{color:#a36549}

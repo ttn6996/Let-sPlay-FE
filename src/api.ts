@@ -24,6 +24,16 @@ export type Room = {
 
 export type RoomPreview = Pick<Room, 'id' | 'name' | 'inviteCode' | 'status' | 'eventDate' | 'eventTime' | 'region'>
 
+export type Account = { id: string; email: string; displayName: string }
+export type AuthResponse = { accessToken: string; expiresAt: string; account: Account }
+export type SavedRoom = Omit<Room, 'member' | 'accessToken'> & { role: 'HOST' | 'MEMBER' }
+const accountTokenKey = 'letsplay.accountToken'
+export function getAccountToken() { return localStorage.getItem(accountTokenKey) }
+export function saveAuth(auth: AuthResponse) { localStorage.setItem(accountTokenKey, auth.accessToken); localStorage.setItem('letsplay.account', JSON.stringify(auth.account)) }
+export function getSavedAccount(): Account | null {
+  try { return JSON.parse(localStorage.getItem('letsplay.account') ?? 'null') as Account | null } catch { return null }
+}
+
 export function getGuestId() {
   const key = 'letsplay.guestId'
   let guestId = sessionStorage.getItem(key)
@@ -41,6 +51,8 @@ export function saveRoomSession(room: Room) {
 export function getRoomToken(roomId: string) {
   return sessionStorage.getItem(`letsplay.room.${roomId}`)
 }
+
+export function forgetAuth() { localStorage.removeItem(accountTokenKey); localStorage.removeItem('letsplay.account') }
 
 export type RoomUpdate = { roomId: string; revision: number; changedAt: string }
 
