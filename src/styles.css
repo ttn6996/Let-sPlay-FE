@@ -34,3 +34,91 @@
 .members-panel{margin:22px 0;padding:15px 0;border-bottom:1px solid #ece9df}.members-heading{display:flex;justify-content:space-between;color:#354a39;font-size:11px}.members-heading span{color:#67816b}.members-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.room-member-chip{display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #e8e8df;border-radius:999px;background:#fff;color:#4b564a;font-size:10px}.room-member-chip small{color:#92948a;font-size:8px}.room-member-chip button{border:0;background:transparent;color:#a34438;font-size:9px;cursor:pointer}.online-dot{width:7px;height:7px;border-radius:50%;background:#b7b9b1}.online-dot.is-online{background:#4d9b5b;box-shadow:0 0 0 3px #e3f0e4}
 .proposal-card-actions{display:flex;align-items:center;gap:6px}.mini-action{padding:7px 9px;border:1px solid #e4e5dc;border-radius:6px;background:#fff;color:#56705a;font-size:9px;cursor:pointer}.mini-action.danger{color:#a34438}.top-pick-badge{padding:4px 6px;border-radius:5px;background:#f7ead8;color:#9b6b2d;font:700 8px 'DM Sans',sans-serif;letter-spacing:.5px}.vote-progress{display:grid;gap:5px;margin-top:13px}.vote-progress>div{display:flex;justify-content:space-between;color:#85877d;font-size:9px}.vote-progress>i{height:5px;overflow:hidden;border-radius:999px;background:#edf0e8}.vote-progress>i>b{display:block;height:100%;border-radius:999px;background:#6f966e;transition:width .2s ease}.proposal-edit-form{display:grid;gap:10px}.proposal-edit-form label{display:grid;gap:5px;color:#687166;font-size:9px}.proposal-edit-form input{height:36px;padding:0 9px;border:1px solid #e4e5dc;border-radius:6px;font:inherit}.proposal-edit-actions{display:flex;gap:8px}.proposal-edit-actions .primary-button{height:36px}
 @media(max-width:700px){.room-welcome{padding:26px 20px}.room-heading{display:grid}.invite-actions{justify-content:flex-start}.finalized-banner{align-items:stretch;flex-direction:column}.finalized-banner>div:last-child{grid-template-columns:1fr 1fr}.proposal-card-title{flex-direction:column}}
+
+/* Small-screen layout and touch targets */
+@media(max-width:480px){
+  .home-shell,.room-shell{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .topbar,.room-shell .topbar{height:62px;gap:12px}
+  .brand{flex-shrink:0;font-size:18px}
+  .brand-mark{width:29px;height:29px}
+  .top-note{max-width:165px;font-size:9px;line-height:1.4}
+  .hero-grid{gap:24px;margin:30px auto 28px}
+  .hero-copy h1{font-size:clamp(34px,9vw,40px);line-height:1.12;letter-spacing:-1.2px}
+  .hero-description{font-size:13px}
+  .hero-footnote{align-items:flex-start;gap:9px;font-size:11px;line-height:1.5}
+  .entry-card{padding:20px 16px 16px;border-radius:14px}
+  .entry-card h2{font-size:23px}
+  .private-label{max-width:145px;text-align:right;line-height:1.4}
+  .account-form{margin:16px 0 0;padding:14px}
+  .entry-form{gap:12px}
+  .entry-form input,.finalize-control select,.proposal-form input{min-width:0;height:44px;font-size:16px}
+  .entry-form label,.proposal-form label{font-size:11px}
+  .mode-switch button{height:40px;font-size:12px}
+  .optional-fields{grid-template-columns:1fr;gap:10px}
+  .primary-button,.secondary-button,.leave-button{min-height:44px}
+  .saved-room{align-items:flex-start;gap:10px;padding:12px}
+  .saved-room span{min-width:0}
+  .saved-room strong{overflow-wrap:anywhere}
+  .saved-room>b{align-self:flex-end;white-space:nowrap}
+  .home-footer{padding:12px 0;line-height:1.5}
+  .room-welcome{width:100%;margin:4vh auto 24px;padding:22px 16px;border-radius:15px}
+  .room-heading{gap:14px}
+  .room-welcome h1{margin:14px 0 10px;font-size:clamp(27px,7.5vw,33px);line-height:1.15;overflow-wrap:anywhere}
+  .room-welcome>p:not(.eyebrow){font-size:13px}
+  .room-member{min-width:0;max-width:55%;gap:6px;font-size:10px}
+  .room-member strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .connection-pill{flex-shrink:0}
+  .invite-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+  .invite-actions .secondary-button{min-width:0;padding:9px 8px;font-size:11px;line-height:1.3}
+  .invite-actions .secondary-button:first-child{grid-column:1/-1}
+  .room-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px;margin:22px 0;padding:17px 0}
+  .room-facts div:last-child{grid-column:auto}
+  .room-facts span{font-size:8px;line-height:1.4;letter-spacing:.7px}
+  .room-facts strong{font-size:12px;overflow-wrap:anywhere}
+  .members-panel{margin:18px 0;padding:12px 0}
+  .members-heading{gap:10px;font-size:11px}
+  .members-heading span{text-align:right}
+  .members-list{gap:7px}
+  .room-member-chip{max-width:100%;flex-wrap:wrap;font-size:10px}
+  .host-controls{gap:12px;padding:14px 0}
+  .host-controls>div:first-child span{font-size:11px;line-height:1.5}
+  .host-controls .primary-button{min-width:0}
+  .finalize-control{width:100%;gap:8px}
+  .finalize-control select{width:100%;font-size:14px}
+  .proposal-form{gap:11px;margin:18px 0;padding:15px 12px}
+  .proposal-form h2,.proposal-section h2{font-size:19px}
+  .proposal-fields{grid-template-columns:1fr;gap:10px}
+  .proposal-section{margin-top:22px}
+  .proposal-section-heading{align-items:flex-start;gap:10px}
+  .proposal-section-heading h2{line-height:1.2}
+  .proposal-section-heading>span{flex-shrink:0;padding-top:22px}
+  .proposal-card{padding:14px 12px}
+  .proposal-card-title{gap:12px}
+  .proposal-card h3{flex-wrap:wrap;font-size:13px;overflow-wrap:anywhere}
+  .proposal-card-actions{flex-wrap:wrap}
+  .vote-button,.mini-action{min-height:40px;font-size:11px}
+  .voter-list span{font-size:10px}
+  .finalized-banner{gap:14px;margin:16px 0;padding:15px 12px}
+  .finalized-banner h2{font-size:20px;overflow-wrap:anywhere}
+  .finalized-banner>div:last-child{grid-template-columns:1fr}
+  .room-bottom-links{align-items:stretch;gap:12px}
+  .room-bottom-links .leave-button{padding:9px;font-size:10px}
+  .qr-panel{padding:14px 10px}
+  .qr-panel svg{max-width:100%;height:auto}
+}
+
+@media(max-width:360px){
+  .home-shell,.room-shell{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  .top-note{max-width:130px}
+  .entry-card{padding-right:13px;padding-left:13px}
+  .private-label{font-size:7px}
+  .room-welcome{padding-right:13px;padding-left:13px}
+  .room-facts{gap:14px 8px}
+  .room-facts span{font-size:7px}
+  .room-bottom-links{flex-direction:column}
+  .room-bottom-links .leave-button{width:100%}
+}
+
+@media(hover:none){
+  .primary-button:hover:not(:disabled){transform:none}
+}
