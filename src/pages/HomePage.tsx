@@ -1,14 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type Room, type RoomPreview, type SavedRoom } from '../api'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getGuestRoomSessions, getMyRooms, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type MyRoomSummary, type Room, type RoomPreview } from '../api'
 
 type Mode = 'create' | 'join'
 
 export default function HomePage() {
-  const [mode, setMode] = useState<Mode>('create')
+  const [searchParams]=useSearchParams()
+  const initialInviteCode=(searchParams.get('code')??searchParams.get('invite')??'').trim().toUpperCase()
+  const [mode, setMode] = useState<Mode>(initialInviteCode?'join':'create')
   const [displayName, setDisplayName] = useState('')
   const [roomName, setRoomName] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
+  const [inviteCode, setInviteCode] = useState(initialInviteCode)
   const [preview, setPreview] = useState<RoomPreview | null>(null)
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('')
@@ -20,32 +22,41 @@ export default function HomePage() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rooms, setRooms] = useState<SavedRoom[]>([])
+  const [rooms, setRooms] = useState<MyRoomSummary[]>([])
   const navigate = useNavigate()
 
   useEffect(() => {
     const token = getAccountToken()
-    if (token) void api.get<SavedRoom[]>('/auth/rooms', { headers: { Authorization: `Bearer ${token}` } }).then(response => setRooms(response.data)).catch(() => { forgetAuth(); setAccount(null) })
+    const guestTokens=getGuestRoomSessions().map(session=>session.token)
+    void getMyRooms(token,guestTokens).then(response=>setRooms(response.data)).catch(()=>{if(token){forgetAuth();setAccount(null)}})
   }, [])
+
+  useEffect(()=>{
+    const code=(searchParams.get('code')??searchParams.get('invite')??'').trim().toUpperCase()
+    if(!code)return
+    void previewRoom(code).then(response=>setPreview(response.data)).catch(requestError=>setError(getApiError(requestError)))
+  },[searchParams])
+
+  async function refreshRooms(token=getAccountToken()){
+    try{const response=await getMyRooms(token,getGuestRoomSessions().map(session=>session.token));setRooms(response.data)}catch{/* Keep the current list visible during temporary network errors. */}
+  }
 
   async function authenticate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setBusy(true)
     try {
       const response = await api.post<AuthResponse>(authMode === 'login' ? '/auth/login' : '/auth/register', authMode === 'login' ? { email, password } : { email, password, displayName: displayName.trim() })
       saveAuth(response.data); setAccount(response.data.account)
-      const oldRoomKeys = Object.keys(sessionStorage).filter(key => key.startsWith('letsplay.room.'))
-      for (const key of oldRoomKeys) {
-        const guestToken = sessionStorage.getItem(key)
-        if (guestToken) await claimRoom(key.slice('letsplay.room.'.length), response.data.accessToken, guestToken).catch(() => undefined)
+      for (const session of getGuestRoomSessions()) {
+        await claimRoom(session.roomId,response.data.accessToken,session.token).catch(() => undefined)
       }
-      const list = await api.get<SavedRoom[]>('/auth/rooms', { headers: { Authorization: `Bearer ${response.data.accessToken}` } }); setRooms(list.data); setPassword('')
+      await refreshRooms(response.data.accessToken); setPassword('')
     } catch (requestError) { setError(getApiError(requestError)) } finally { setBusy(false) }
   }
 
   async function logout() {
     const token = getAccountToken()
     if (token) await api.post('/auth/logout', {}, { headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined)
-    forgetAuth(); setAccount(null); setRooms([])
+    forgetAuth(); setAccount(null); await refreshRooms(null)
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -107,9 +118,9 @@ export default function HomePage() {
           <div className="card-topline"><span className="card-icon">✳</span><span className="private-label">PHÒNG RIÊNG CHO NHÓM BẠN</span></div>
           <h2 id="entry-heading">Bắt đầu cuộc hẹn</h2>
           <p className="card-description">Tạo phòng mới hoặc tham gia bằng mã mời.</p>
+          {rooms.length > 0 && <section className="saved-rooms"><h3>Phòng đã tham gia gần đây</h3>{rooms.map(saved => <Link key={saved.roomId} to={`/rooms/${saved.roomId}`} className="saved-room"><span><strong>{saved.name}</strong><small>{saved.viewerRole === 'HOST' ? 'Chủ phòng' : 'Thành viên'} · {saved.memberCount} người · {saved.phase==='FINALIZED'?'Đã chốt':saved.phase==='VOTING'?'Đang bình chọn':'Đang góp ý'}</small></span><b>Vào lại →</b></Link>)}</section>}
           {!account ? <form onSubmit={authenticate} className="entry-form account-form"><h3>Lưu phòng của bạn</h3><p>Đăng nhập để mở lại phòng trên điện thoại hoặc máy tính khác.</p><div className="mode-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => setAuthMode('login')}>Đăng nhập</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => setAuthMode('register')}>Tạo tài khoản</button></div>{authMode === 'register' && <label>Tên hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" /></label>}<label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="ban@email.com" /></label><label>Mật khẩu<input type="password" required minLength={8} maxLength={72} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Ít nhất 8 ký tự" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy}>{busy ? 'Đang xử lý…' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}<span>↗</span></button></form> : <>
           <div className="account-banner"><span>Đang đăng nhập: <strong>{account.displayName}</strong></span><button type="button" onClick={() => void logout()}>Đăng xuất</button></div>
-          {rooms.length > 0 && <section className="saved-rooms"><h3>Phòng của bạn</h3>{rooms.map(saved => <Link key={saved.id} to={`/rooms/${saved.id}`} className="saved-room"><span><strong>{saved.name}</strong><small>{saved.role === 'HOST' ? 'Chủ phòng' : 'Thành viên'} · {saved.memberCount} thành viên</small></span><b>→</b></Link>)}</section>}
           <div className="mode-switch" role="tablist" aria-label="Chọn thao tác">
             <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'selected' : ''} onClick={() => { setMode('create'); setError(''); setPreview(null) }}>Tạo phòng mới</button>
             <button type="button" role="tab" aria-selected={mode === 'join'} className={mode === 'join' ? 'selected' : ''} onClick={() => { setMode('join'); setError(''); setPreview(null) }}>Mình có mã mời</button>

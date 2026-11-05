@@ -1,6 +1,6 @@
 import axios from 'axios'
-import type { Account, AuthResponse, Room, RoomPreview } from './types'
-export type { Account, AuthResponse, Proposal, Room, RoomPreview, SavedRoom } from './types'
+import type { Account, AuthResponse, MyRoomSummary, Room, RoomPreview } from './types'
+export type { Account, AuthResponse, MyRoomSummary, Proposal, Room, RoomMember, RoomPreview, SavedRoom } from './types'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8082/api',
@@ -26,11 +26,23 @@ export function getGuestId() {
 }
 
 export function saveRoomSession(room: Room) {
-  if (room.accessToken) sessionStorage.setItem(`letsplay.room.${room.id}`, room.accessToken)
+  if (room.accessToken) { sessionStorage.setItem(`letsplay.room.${room.id}`, room.accessToken); localStorage.setItem(`letsplay.room.${room.id}`,room.accessToken) }
 }
 
 export function getRoomToken(roomId: string) {
-  return sessionStorage.getItem(`letsplay.room.${roomId}`)
+  return sessionStorage.getItem(`letsplay.room.${roomId}`) ?? localStorage.getItem(`letsplay.room.${roomId}`)
+}
+
+export function getGuestRoomSessions(){
+  const sessions=new Map<string,string>()
+  for(const storage of [localStorage,sessionStorage]) for(let i=0;i<storage.length;i++){
+    const key=storage.key(i)
+    if(key?.startsWith('letsplay.room.')){const token=storage.getItem(key);if(token)sessions.set(key.slice('letsplay.room.'.length),token)}
+  }
+  return [...sessions.entries()].map(([roomId,token])=>({roomId,token}))
+}
+export function getMyRooms(accountToken?:string|null,guestTokens:string[]=[]){
+  return api.get<MyRoomSummary[]>('/rooms/mine',{headers:{...(accountToken?{Authorization:`Bearer ${accountToken}`}:{ } ),...(guestTokens.length?{'X-Guest-Tokens':guestTokens.join(',')}:{})}})
 }
 
 export function forgetAuth() { localStorage.removeItem(accountTokenKey); localStorage.removeItem('letsplay.account') }
@@ -56,8 +68,17 @@ export function updateRoomPhase(roomId: string, payload: { phase: string; select
 export function leaveRoom(roomId: string, token: string) {
   return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } })
 }
+export function updateProposal(roomId:string,proposalId:string,payload:{title:string;description?:string;scheduledTime?:string|null},token:string){
+  return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}`,payload,{headers:{Authorization:`Bearer ${token}`}})
+}
+export function deleteProposal(roomId:string,proposalId:string,token:string){
+  return api.delete<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}`,{headers:{Authorization:`Bearer ${token}`}})
+}
+export function kickMember(roomId:string,membershipId:string,token:string){
+  return api.delete<void>(`/rooms/${encodeURIComponent(roomId)}/members/${encodeURIComponent(membershipId)}`,{headers:{Authorization:`Bearer ${token}`}})
+}
 
-export type RoomUpdate = { roomId: string; revision: number; changedAt: string }
+export type RoomUpdate = { roomId: string; revision: number; changedAt: string; eventType?: 'revision'|'presence' }
 
 export class RealtimeRequestError extends Error {
   readonly status: number
@@ -106,7 +127,8 @@ export async function streamRoomEvents(
         const eventName = lines.find(line => line.startsWith('event:'))?.slice(6).trim()
         const data = lines.filter(line => line.startsWith('data:')).map(line => line.slice(5).trim()).join('\n')
         if (eventName === 'ready') onReady()
-        if (eventName === 'room.updated' && data) onUpdate(JSON.parse(data) as RoomUpdate)
+        if (eventName === 'room.updated' && data) onUpdate({ ...(JSON.parse(data) as RoomUpdate),eventType:'revision' })
+        if (eventName === 'room.presence' && data) onUpdate({ ...(JSON.parse(data) as RoomUpdate),eventType:'presence' })
         boundary = buffer.search(/\r?\n\r?\n/)
       }
     }
