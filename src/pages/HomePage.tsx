@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getGuestRoomSessions, getMyRooms, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type MyRoomSummary, type Room, type RoomPreview } from '../api'
 import { enableRoomNotifications, preloadPushConfig, requestRoomPushPermission, unlockNotificationSound } from '../notifications'
+import { GoogleSignInButton } from '../components/GoogleSignInButton'
 
 type Mode = 'create' | 'join'
 
@@ -24,10 +25,12 @@ export default function HomePage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rooms, setRooms] = useState<MyRoomSummary[]>([])
+  const [googleClientId,setGoogleClientId]=useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
     void preloadPushConfig()
+    void api.get<{googleClientId:string}>('/system/public-config').then(response=>setGoogleClientId(response.data.googleClientId??'')).catch(()=>undefined)
     const token = getAccountToken()
     const guestTokens=getGuestRoomSessions().map(session=>session.token)
     void getMyRooms(token,guestTokens).then(response=>setRooms(response.data)).catch(()=>{if(token){forgetAuth();setAccount(null)}})
@@ -43,16 +46,36 @@ export default function HomePage() {
     try{const response=await getMyRooms(token,getGuestRoomSessions().map(session=>session.token));setRooms(response.data)}catch{/* Keep the current list visible during temporary network errors. */}
   }
 
+  async function finishAuthentication(auth:AuthResponse){
+    saveAuth(auth); setAccount(auth.account)
+    for (const session of getGuestRoomSessions()) {
+      await claimRoom(session.roomId,auth.accessToken,session.token).catch(() => undefined)
+    }
+    const invite=(searchParams.get('code')??searchParams.get('invite')??inviteCode).trim().toUpperCase()
+    if(mode==='join'&&invite){
+      const roomPreview=await previewRoom(invite)
+      const joined=await api.post<Room>('/rooms/join',{guestId:getGuestId(),displayName:displayName.trim()||auth.account.displayName,inviteCode:roomPreview.data.inviteCode},{headers:{Authorization:`Bearer ${auth.accessToken}`}})
+      saveRoomSession(joined.data)
+      await refreshRooms(auth.accessToken)
+      navigate(`/rooms/${joined.data.id}`)
+      return
+    }
+    await refreshRooms(auth.accessToken)
+  }
+
   async function authenticate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setBusy(true)
     try {
       const response = await api.post<AuthResponse>(authMode === 'login' ? '/auth/login' : '/auth/register', authMode === 'login' ? { email, password } : { email, password, displayName: displayName.trim() })
-      saveAuth(response.data); setAccount(response.data.account)
-      for (const session of getGuestRoomSessions()) {
-        await claimRoom(session.roomId,response.data.accessToken,session.token).catch(() => undefined)
-      }
-      await refreshRooms(response.data.accessToken); setPassword('')
+      await finishAuthentication(response.data); setPassword('')
     } catch (requestError) { setError(getApiError(requestError)) } finally { setBusy(false) }
+  }
+
+  async function authenticateWithGoogle(credential:string){
+    if(busy)return
+    setError('');setBusy(true)
+    try{const response=await api.post<AuthResponse>('/auth/google',{credential});await finishAuthentication(response.data)}
+    catch(requestError){setError(getApiError(requestError))}finally{setBusy(false)}
   }
 
   async function logout() {
@@ -124,7 +147,7 @@ export default function HomePage() {
           <h2 id="entry-heading">Bắt đầu cuộc hẹn</h2>
           <p className="card-description">Tạo phòng mới hoặc tham gia bằng mã mời.</p>
           {rooms.length > 0 && <section className="saved-rooms"><h3>Phòng đã tham gia gần đây</h3>{rooms.map(saved => <Link key={saved.roomId} to={`/rooms/${saved.roomId}`} className="saved-room"><span><strong>{saved.name}</strong><small>{saved.viewerRole === 'HOST' ? 'Chủ phòng' : 'Thành viên'} · {saved.memberCount} người · {saved.phase==='FINALIZED'?'Đã chốt':saved.phase==='VOTING'?'Đang bình chọn':'Đang góp ý'}</small></span><b>Vào lại →</b></Link>)}</section>}
-          {!account ? <form onSubmit={authenticate} className="entry-form account-form"><h3>Lưu phòng của bạn</h3><p>Đăng nhập để mở lại phòng trên điện thoại hoặc máy tính khác.</p><div className="mode-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => setAuthMode('login')}>Đăng nhập</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => setAuthMode('register')}>Tạo tài khoản</button></div>{authMode === 'register' && <label>Tên hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" /></label>}<label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="ban@email.com" /></label><label>Mật khẩu<input type="password" required minLength={8} maxLength={72} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Ít nhất 8 ký tự" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy}>{busy ? 'Đang xử lý…' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}<span>↗</span></button></form> : <>
+          {!account ? <form onSubmit={authenticate} className="entry-form account-form"><h3>Lưu phòng của bạn</h3><p>Đăng nhập để mở lại phòng trên điện thoại hoặc máy tính khác.</p><div className="mode-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => setAuthMode('login')}>Đăng nhập</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => setAuthMode('register')}>Tạo tài khoản</button></div>{authMode === 'register' && <label>Tên hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" /></label>}<label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="ban@email.com" /></label><label>Mật khẩu<input type="password" required minLength={8} maxLength={72} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Ít nhất 8 ký tự" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy}>{busy ? 'Đang xử lý…' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}<span>↗</span></button>{googleClientId&&<><div className="auth-divider"><span>hoặc</span></div><GoogleSignInButton clientId={googleClientId} disabled={busy} onCredential={credential=>void authenticateWithGoogle(credential)}/></>}</form> : <>
           <div className="account-banner"><span>Đang đăng nhập: <strong>{account.displayName}</strong></span><button type="button" onClick={() => void logout()}>Đăng xuất</button></div>
           <div className="mode-switch" role="tablist" aria-label="Chọn thao tác">
             <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'selected' : ''} onClick={() => { setMode('create'); setError(''); setPreview(null) }}>Tạo phòng mới</button>

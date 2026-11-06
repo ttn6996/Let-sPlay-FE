@@ -50,7 +50,7 @@ export function forgetAuth() { localStorage.removeItem(accountTokenKey); localSt
 export function getRoom(roomId: string, token: string, signal?: AbortSignal) {
   return api.get<Room>(`/rooms/${encodeURIComponent(roomId)}`, { headers: { Authorization: `Bearer ${token}` }, signal })
 }
-export function getPushConfig(){return api.get<{vapidPublicKey:string}>('/system/public-config')}
+export function getPushConfig(){return api.get<{vapidPublicKey:string;googleClientId:string}>('/system/public-config')}
 export function savePushSubscription(roomId:string,token:string,subscription:PushSubscription){
   return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/push-subscriptions`,subscription.toJSON(),{headers:{Authorization:`Bearer ${token}`}})
 }
