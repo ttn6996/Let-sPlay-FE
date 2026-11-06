@@ -27,7 +27,8 @@ export function GoogleSignInButton({clientId,disabled=false,onCredential}:Props)
       if(cancelled||!container.current||!window.google)return
       window.google.accounts.id.initialize({client_id:clientId,callback:response=>callback.current(response.credential)})
       container.current.replaceChildren()
-      window.google.accounts.id.renderButton(container.current,{type:'standard',theme:'outline',size:'large',text:'continue_with',shape:'rectangular',logo_alignment:'left',width:Math.min(400,container.current.clientWidth),locale:'vi'})
+      const buttonWidth=Math.max(240,Math.min(400,Math.round(container.current.getBoundingClientRect().width)||400))
+      window.google.accounts.id.renderButton(container.current,{type:'standard',theme:'outline',size:'large',text:'continue_with',shape:'rectangular',logo_alignment:'left',width:buttonWidth,locale:'vi'})
     }
     let script=document.querySelector<HTMLScriptElement>('script[data-google-identity]')
     if(window.google){render()}
