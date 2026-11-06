@@ -66,8 +66,8 @@ export function createProposal(roomId: string, payload: { title: string; descrip
 export function toggleVote(roomId: string, proposalId: string, token: string) {
   return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}/vote`, {}, { headers: { Authorization: `Bearer ${token}` } })
 }
-export function updateAvailabilityOptions(roomId:string,startsAt:string[],token:string){
-  return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/availability/options`,{startsAt},{headers:{Authorization:`Bearer ${token}`}})
+export function updateAvailabilityOptions(roomId:string,title:string,startsAt:string[],token:string){
+  return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/availability/options`,{title,startsAt},{headers:{Authorization:`Bearer ${token}`}})
 }
 export function updateAvailability(roomId:string,slotIds:string[],token:string){
   return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/availability`,{slotIds},{headers:{Authorization:`Bearer ${token}`}})

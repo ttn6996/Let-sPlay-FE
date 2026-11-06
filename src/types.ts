@@ -16,6 +16,7 @@ export type Room = {
   selectedProposalId: string | null
   proposals: Proposal[]
   availabilitySlots: AvailabilitySlot[]
+  availabilityTitle: string
 }
 
 export type RoomMember = { id: string; displayName: string; role: 'HOST' | 'MEMBER'; online: boolean }
