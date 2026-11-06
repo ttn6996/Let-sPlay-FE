@@ -69,6 +69,15 @@ export function toggleVote(roomId: string, proposalId: string, token: string) {
 export function updateAvailabilityOptions(roomId:string,title:string,startsAt:string[],token:string){
   return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/availability/options`,{title,startsAt},{headers:{Authorization:`Bearer ${token}`}})
 }
+export function addAvailabilitySlots(roomId:string,startsAt:string[],token:string){
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/availability/slots`,{startsAt},{headers:{Authorization:`Bearer ${token}`}})
+}
+export function commentOnProposal(roomId:string,proposalId:string,content:string,token:string){
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}/comments`,{content},{headers:{Authorization:`Bearer ${token}`}})
+}
+export function commentOnAvailabilitySlot(roomId:string,slotId:string,content:string,token:string){
+  return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/availability/${encodeURIComponent(slotId)}/comments`,{content},{headers:{Authorization:`Bearer ${token}`}})
+}
 export function updateAvailability(roomId:string,slotIds:string[],token:string){
   return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/availability`,{slotIds},{headers:{Authorization:`Bearer ${token}`}})
 }

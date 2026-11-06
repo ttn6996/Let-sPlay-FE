@@ -20,8 +20,9 @@ export type Room = {
 }
 
 export type RoomMember = { id: string; displayName: string; role: 'HOST' | 'MEMBER'; online: boolean }
-export type Proposal = { id: string; createdByMe: boolean; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { displayName: string }[]; votedByMe: boolean; completed: boolean }
-export type AvailabilitySlot = {id:string;startsAt:string;availableCount:number;availableByMe:boolean;selected:boolean}
+export type RoomComment = {id:string;displayName:string;content:string;createdAt:string;writtenByMe:boolean}
+export type Proposal = { id: string; createdByMe: boolean; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { displayName: string }[]; votedByMe: boolean; completed: boolean; comments:RoomComment[] }
+export type AvailabilitySlot = {id:string;startsAt:string;availableCount:number;availableByMe:boolean;selected:boolean;comments:RoomComment[]}
 export type RoomPreview = Pick<Room, 'id' | 'name' | 'inviteCode' | 'status' | 'phase' | 'memberCount' | 'eventDate' | 'eventTime' | 'region'>
 export type Account = { id: string; email: string; displayName: string }
 export type AuthResponse = { accessToken: string; expiresAt: string; account: Account }
