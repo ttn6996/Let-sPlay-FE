@@ -20,7 +20,7 @@ export function AvailabilityPanel({room,roomId,token,onRoom}:Props){
   const [message,setMessage]=useState('')
   const [draftSelection,setDraftSelection]=useState<string[]|null>(null)
   const isHost=room.member.role==='HOST'
-  const locked=room.phase==='FINALIZED'
+  const locked=room.phase==='FINALIZED'||room.status==='CANCELLED'
   const slots=room.availabilitySlots??[]
   const slotSignature=slots.map(slot=>slot.id).join(',')
   const savedSelection=slots.filter(slot=>slot.availableByMe).map(slot=>slot.id)

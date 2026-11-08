@@ -22,11 +22,15 @@ Vite nạp `VITE_API_URL` và `VITE_PORT` từ `.env`. Cổng mặc định là 
 - Kết nối SSE có Bearer token; tự reconnect và tải snapshot mới khi revision phòng thay đổi.
 - Token phiên khách và guest ID được giữ trong `sessionStorage` của tab hiện tại.
 
-Các luồng góp ý, bình chọn, sắp lịch và chia tiền chưa được triển khai.
+- Cập nhật kế hoạch, xác nhận tham gia, hộp thông báo, sổ chi tiêu minh bạch và lịch sử chỉnh sửa.
+- Gợi ý đề xuất theo ngân sách/sở thích, chọn điểm hẹn và điểm xuất phát chung trên bản đồ, phối hợp đi chung xe.
+- Dự báo thời tiết theo tọa độ kèm phương án dự phòng; cấp quyền Calendar riêng để đồng bộ lịch một chiều.
 
 ## Quyền riêng tư và thông báo phòng
 
-Trong response phòng, tên của thành viên khác được thay bằng nhãn ẩn danh; proposal chỉ trả `createdByMe`, còn phiếu của bạn hiện là “Bạn” và phiếu khác hiện “Ẩn danh”. Khi có đề xuất mới, phòng đang mở hiện toast kèm âm/rung best effort. Thông báo realtime trong phòng luôn hoạt động. Khi VAPID keys được cấu hình, app sẽ tự xin quyền trình duyệt lúc tạo/tham gia phòng và đăng ký Web Push nếu người dùng cho phép.
+Tên các thành viên được công khai trong phòng; người tạo đề xuất không bị lộ. Phiếu và bình luận hiển thị “Bạn” với chính người viết, còn thành viên khác thấy “Ẩn danh”. Khi có hoạt động mới, phòng đang mở cập nhật realtime; Web Push phụ thuộc quyền thông báo của trình duyệt và VAPID config.
+
+Sổ chi tiêu công khai cho thành viên trong phòng. Mỗi khoản cần phân bổ đủ tổng tiền cho nhiều người trả và người cùng chia; lịch sử giữ tên người sửa và thay đổi trước/sau. Google Calendar cần người dùng cấp scope `calendar.events` riêng; bản đồ chỉ tải khi mở trình chọn vị trí.
 
 ## Tìm giờ phù hợp
 

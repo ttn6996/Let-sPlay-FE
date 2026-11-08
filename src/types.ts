@@ -17,11 +17,17 @@ export type Room = {
   proposals: Proposal[]
   availabilitySlots: AvailabilitySlot[]
   availabilityTitle: string
+  planNotes: string | null
+  eventLatitude: number | null
+  eventLongitude: number | null
+  meetupLatitude: number | null
+  meetupLongitude: number | null
+  weatherFallback: string | null
 }
 
 export type RoomMember = { id: string; displayName: string; role: 'HOST' | 'MEMBER'; online: boolean }
 export type RoomComment = {id:string;displayName:string;content:string;createdAt:string;writtenByMe:boolean}
-export type Proposal = { id: string; createdByMe: boolean; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { displayName: string }[]; votedByMe: boolean; completed: boolean; comments:RoomComment[] }
+export type Proposal = { id: string; createdByMe: boolean; title: string; description: string | null; scheduledTime: string | null; createdAt: string; voteCount: number; voters: { displayName: string }[]; votedByMe: boolean; completed: boolean; comments:RoomComment[]; location:string|null; estimatedCostPerPerson:number|null; latitude:number|null; longitude:number|null }
 export type AvailabilitySlot = {id:string;startsAt:string;availableCount:number;availableByMe:boolean;selected:boolean;comments:RoomComment[]}
 export type RoomPreview = Pick<Room, 'id' | 'name' | 'inviteCode' | 'status' | 'phase' | 'memberCount' | 'eventDate' | 'eventTime' | 'region'>
 export type Account = { id: string; email: string; displayName: string }

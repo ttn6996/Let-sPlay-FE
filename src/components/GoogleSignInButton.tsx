@@ -8,6 +8,9 @@ declare global {
           initialize: (options:{client_id:string;callback:(response:{credential:string})=>void;use_fedcm_for_button?:boolean})=>void
           renderButton: (element:HTMLElement,options:Record<string,string|number|boolean>)=>void
         }
+        oauth2?: {
+          initTokenClient: (options:{client_id:string;scope:string;callback:(response:{access_token?:string;error?:string})=>void})=>{requestAccessToken:(options?:{prompt?:string})=>void}
+        }
       }
     }
   }

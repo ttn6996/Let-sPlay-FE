@@ -60,7 +60,7 @@ export function previewRoom(inviteCode: string) {
 export function claimRoom(roomId: string, accountToken: string, guestToken: string) {
   return api.post(`/rooms/${encodeURIComponent(roomId)}/claim`, {}, { headers: { Authorization: `Bearer ${accountToken}`, 'X-Guest-Token': guestToken } })
 }
-export function createProposal(roomId: string, payload: { title: string; description?: string; scheduledTime?: string | null }, token: string) {
+export function createProposal(roomId: string, payload: { title: string; description?: string; scheduledTime?: string | null;location?:string|null;estimatedCostPerPerson?:number|null;latitude?:number|null;longitude?:number|null }, token: string) {
   return api.post<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals`, payload, { headers: { Authorization: `Bearer ${token}` } })
 }
 export function toggleVote(roomId: string, proposalId: string, token: string) {
@@ -90,7 +90,7 @@ export function updateRoomPhase(roomId: string, payload: { phase: string; select
 export function leaveRoom(roomId: string, token: string) {
   return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } })
 }
-export function updateProposal(roomId:string,proposalId:string,payload:{title:string;description?:string;scheduledTime?:string|null},token:string){
+export function updateProposal(roomId:string,proposalId:string,payload:{title:string;description?:string;scheduledTime?:string|null;location?:string|null;estimatedCostPerPerson?:number|null;latitude?:number|null;longitude?:number|null},token:string){
   return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/proposals/${encodeURIComponent(proposalId)}`,payload,{headers:{Authorization:`Bearer ${token}`}})
 }
 export function deleteProposal(roomId:string,proposalId:string,token:string){
@@ -102,6 +102,26 @@ export function setProposalCompleted(roomId:string,proposalId:string,completed:b
 export function kickMember(roomId:string,membershipId:string,token:string){
   return api.delete<void>(`/rooms/${encodeURIComponent(roomId)}/members/${encodeURIComponent(membershipId)}`,{headers:{Authorization:`Bearer ${token}`}})
 }
+
+const roomHeaders=(token:string)=>({headers:{Authorization:`Bearer ${token}`}})
+export type ExpenseAllocation={membershipId:string;amount:number}
+export type ExpensePayload={title:string;totalAmount:number;note?:string;payers:ExpenseAllocation[];shares:ExpenseAllocation[]}
+export function updateRoomPlan(roomId:string,payload:{name:string;eventDate:string|null;eventTime:string|null;region:string|null;notes:string|null;latitude:number|null;longitude:number|null;weatherFallback:string|null;cancelled:boolean},token:string){return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/plan`,payload,roomHeaders(token))}
+export function setAttendance(roomId:string,status:string,token:string){return api.put<Room>(`/rooms/${encodeURIComponent(roomId)}/attendance`,{status},roomHeaders(token))}
+export function getRoomCollaboration(roomId:string,token:string){return api.get<RoomCollaboration>(`/rooms/${encodeURIComponent(roomId)}/collaboration`,roomHeaders(token))}
+export function markRoomNotificationsRead(roomId:string,token:string){return api.post<void>(`/rooms/${encodeURIComponent(roomId)}/notifications/read`,{},roomHeaders(token))}
+export function saveMeetupPoint(roomId:string,latitude:number|null,longitude:number|null,token:string){return api.put<void>(`/rooms/${encodeURIComponent(roomId)}/meetup-point`,{latitude,longitude},roomHeaders(token))}
+export function saveRoomPreferences(roomId:string,payload:{preferences:string;budgetMin:number|null;budgetMax:number|null},token:string){return api.put<void>(`/rooms/${encodeURIComponent(roomId)}/preferences`,payload,roomHeaders(token))}
+export function saveRoomRide(roomId:string,payload:{hasVehicle:boolean;seatsAvailable:number;pickupArea:string;note:string},token:string){return api.put<void>(`/rooms/${encodeURIComponent(roomId)}/ride`,payload,roomHeaders(token))}
+export function getRoomExpenses(roomId:string,token:string){return api.get<RoomExpenseBook>(`/rooms/${encodeURIComponent(roomId)}/expenses`,roomHeaders(token))}
+export function createRoomExpense(roomId:string,payload:ExpensePayload,token:string){return api.post(`/rooms/${encodeURIComponent(roomId)}/expenses`,payload,roomHeaders(token))}
+export function updateRoomExpense(roomId:string,id:string,payload:ExpensePayload,token:string){return api.put(`/rooms/${encodeURIComponent(roomId)}/expenses/${encodeURIComponent(id)}`,payload,roomHeaders(token))}
+export function deleteRoomExpense(roomId:string,id:string,token:string){return api.delete(`/rooms/${encodeURIComponent(roomId)}/expenses/${encodeURIComponent(id)}`,roomHeaders(token))}
+export function createRoomSettlement(roomId:string,payload:{fromMembershipId:string;toMembershipId:string;amount:number},token:string){return api.post(`/rooms/${encodeURIComponent(roomId)}/settlements`,payload,roomHeaders(token))}
+export function getRoomCalendarLink(roomId:string,token:string){return api.get<{eventId:string|null}>(`/rooms/${encodeURIComponent(roomId)}/calendar-link`,roomHeaders(token))}
+export function saveRoomCalendarLink(roomId:string,eventId:string,token:string){return api.put<void>(`/rooms/${encodeURIComponent(roomId)}/calendar-link`,{eventId},roomHeaders(token))}
+export type RoomCollaboration={attendance:{membershipId:string;displayName:string;status:string}[];preferences:{membershipId:string;preferences:string;budgetMin:number;budgetMax:number}[];rides:{membershipId:string;displayName:string;registered:boolean;hasVehicle:boolean;seatsAvailable:number;pickupArea:string;note:string}[];notifications:{id:string;type:string;title:string;body:string;createdAt:string;read:boolean}[];planHistory:{id:string;actor:string;summary:string;createdAt:string}[]}
+export type RoomExpenseBook={expenses:{id:string;title:string;totalAmount:number;note:string;payers:{membershipId:string;displayName:string;amount:number}[];shares:{membershipId:string;displayName:string;amount:number}[]}[];audit:{id:string;actor:string;action:string;description:string;createdAt:string}[];balances:{members:{membershipId:string;displayName:string;netAmount:number}[];suggestedTransfers:{fromMembershipId:string;from:string;toMembershipId:string;to:string;amount:number}[];settlements:{id:string;from:string;to:string;amount:number;status:string}[]}}
 
 export type RoomUpdate = { roomId: string; revision: number; changedAt: string; eventType?: 'revision'|'presence' }
 export type ProposalCreatedUpdate = {roomId:string;proposalId:string;title:string;createdAt:string}
