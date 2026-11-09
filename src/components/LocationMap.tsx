@@ -3,6 +3,7 @@ import { Map as MapLibreMap, Marker, NavigationControl, type MapMouseEvent } fro
 import { setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { MapPin, Navigation, ExternalLink } from 'lucide-react'
 import type { Point } from './RoomToolkit'
 
 setWorkerUrl(workerUrl)
@@ -123,7 +124,15 @@ export function LocationMap({ location, meetup, mode, onSelect }: LocationMapPro
       <div className="toolkit-map-statusbar">
         <div className="map-status-info">
           <span className="status-label">
-            {mode === 'event' ? '📍 Điểm hẹn:' : '🚩 Điểm đón chung:'}
+            {mode === 'event' ? (
+              <span className="status-label-inner">
+                <MapPin size={13} className="status-icon" /> Điểm hẹn:
+              </span>
+            ) : (
+              <span className="status-label-inner">
+                <Navigation size={13} className="status-icon" /> Điểm đón chung:
+              </span>
+            )}
           </span>
           <span className="status-coords">
             {activePoint ? `${activePoint.lat}, ${activePoint.lon}` : 'Chưa ghim vị trí (bấm vào bản đồ để chọn)'}
@@ -136,7 +145,8 @@ export function LocationMap({ location, meetup, mode, onSelect }: LocationMapPro
             rel="noreferrer"
             className="map-ext-link"
           >
-            Mở trên Google Maps ↗
+            <span>Mở trên Google Maps</span>
+            <ExternalLink size={12} className="inline-icon" />
           </a>
         )}
       </div>

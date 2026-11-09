@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Check, Plus, Clock, Sparkles } from 'lucide-react'
 import {
   addAvailabilitySlots,
   commentOnAvailabilitySlot,
@@ -240,7 +241,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             disabled={busy || !draftSlots.length || !draftTitle.trim()}
             onClick={() => void saveOptions()}
           >
-            {busy ? 'Đang lưu…' : 'Lưu tiêu đề và khung giờ'} <span aria-hidden="true">✓</span>
+            {busy ? 'Đang lưu…' : 'Lưu tiêu đề và khung giờ'} <Check size={14} className="inline-icon" />
           </button>
         </div>
       )}
@@ -263,7 +264,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             />
           </div>
           <button type="submit" className="secondary-button add-slot-btn" disabled={busy || !newSlotTime}>
-            ＋ Thêm khung giờ
+            <Plus size={14} className="inline-icon mr-1" /> Thêm khung giờ
           </button>
           <small className="add-slot-help">Mọi thành viên trong phòng đều có thể đề xuất khung giờ mới.</small>
         </form>
@@ -271,7 +272,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
 
       {!slots.length ? (
         <div className="availability-empty">
-          <span className="empty-icon">◷</span>
+          <Clock size={24} className="empty-icon" />
           <strong>Chưa có khung giờ nào được tạo</strong>
           <p>{isHost ? 'Hãy thêm vài ngày và giờ dự kiến ở ô phía trên để cả nhóm cùng chọn.' : 'Chủ phòng chưa tạo danh sách giờ. Bạn sẽ có thể chọn khi khung giờ xuất hiện.'}</p>
         </div>
@@ -281,7 +282,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             <div className="availability-recommendation">
               <div className="recommendation-badge-wrap">
                 <span className="recommendation-badge">
-                  <span className="badge-sparkle">✦</span> ĐANG ĐƯỢC CHỌN NHIỀU NHẤT
+                  <Sparkles size={13} className="badge-sparkle" /> ĐANG ĐƯỢC CHỌN NHIỀU NHẤT
                 </span>
                 <strong className="recommendation-time">{localSlot(recommendation.startsAt)}</strong>
               </div>
@@ -399,7 +400,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
                 disabled={busy || !selectionChanged}
                 onClick={() => void saveSelection()}
               >
-                {busy ? 'Đang lưu…' : 'Lưu lựa chọn của bạn'} <span aria-hidden="true">✓</span>
+                {busy ? 'Đang lưu…' : 'Lưu lựa chọn của bạn'} <Check size={14} className="inline-icon" />
               </button>
             </div>
           )}

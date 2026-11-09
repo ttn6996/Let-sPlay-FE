@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Sparkles, ArrowUpRight, ArrowRight, Heart } from 'lucide-react'
 import gsap from 'gsap'
 import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getGuestRoomSessions, getMyRooms, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type MyRoomSummary, type Room, type RoomPreview } from '../api'
 import { enableRoomNotifications, preloadPushConfig, requestRoomPushPermission, unlockNotificationSound } from '../notifications'
@@ -170,11 +171,11 @@ export default function HomePage() {
         </div>
 
         <section className="entry-card" aria-labelledby="entry-heading">
-          <div className="card-topline"><span className="card-icon">✳</span><span className="private-label">PHÒNG RIÊNG CHO NHÓM BẠN</span></div>
+          <div className="card-topline"><span className="card-icon"><Sparkles size={16} /></span><span className="private-label">PHÒNG RIÊNG CHO NHÓM BẠN</span></div>
           <h2 id="entry-heading">Bắt đầu cuộc hẹn</h2>
           <p className="card-description">Tạo phòng mới hoặc tham gia bằng mã mời.</p>
-          {rooms.length > 0 && <section className="saved-rooms"><h3>Phòng đã tham gia gần đây</h3>{rooms.map(saved => <Link key={saved.roomId} to={`/rooms/${saved.roomId}`} className="saved-room"><span><strong>{saved.name}</strong><small>{saved.viewerRole === 'HOST' ? 'Chủ phòng' : 'Thành viên'} · {saved.memberCount} người · {saved.phase==='FINALIZED'?'Đã chốt':saved.phase==='VOTING'?'Đang bình chọn':'Đang góp ý'}</small></span><b>Vào lại →</b></Link>)}</section>}
-          {!account ? <form onSubmit={authenticate} className="entry-form account-form"><h3>Lưu phòng của bạn</h3><p>Đăng nhập để mở lại phòng trên điện thoại hoặc máy tính khác.</p><div className="mode-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => setAuthMode('login')}>Đăng nhập</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => setAuthMode('register')}>Tạo tài khoản</button></div>{authMode === 'register' && <label>Tên hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" /></label>}<label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="ban@email.com" /></label><label>Mật khẩu<input type="password" required minLength={8} maxLength={72} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Ít nhất 8 ký tự" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy}>{busy ? 'Đang xử lý…' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}<span>↗</span></button>{googleClientId&&<><div className="auth-divider"><span>hoặc</span></div><GoogleSignInButton clientId={googleClientId} disabled={busy} onCredential={credential=>void authenticateWithGoogle(credential)}/></>}</form> : <>
+          {rooms.length > 0 && <section className="saved-rooms"><h3>Phòng đã tham gia gần đây</h3>{rooms.map(saved => <Link key={saved.roomId} to={`/rooms/${saved.roomId}`} className="saved-room"><span><strong>{saved.name}</strong><small>{saved.viewerRole === 'HOST' ? 'Chủ phòng' : 'Thành viên'} · {saved.memberCount} người · {saved.phase==='FINALIZED'?'Đã chốt':saved.phase==='VOTING'?'Đang bình chọn':'Đang góp ý'}</small></span><b>Vào lại <ArrowRight size={13} className="inline ml-1" /></b></Link>)}</section>}
+          {!account ? <form onSubmit={authenticate} className="entry-form account-form"><h3>Lưu phòng của bạn</h3><p>Đăng nhập để mở lại phòng trên điện thoại hoặc máy tính khác.</p><div className="mode-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => setAuthMode('login')}>Đăng nhập</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => setAuthMode('register')}>Tạo tài khoản</button></div>{authMode === 'register' && <label>Tên hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" /></label>}<label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="ban@email.com" /></label><label>Mật khẩu<input type="password" required minLength={8} maxLength={72} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Ít nhất 8 ký tự" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy}>{busy ? 'Đang xử lý…' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}<ArrowUpRight size={15} className="inline ml-1" /></button>{googleClientId&&<><div className="auth-divider"><span>hoặc</span></div><GoogleSignInButton clientId={googleClientId} disabled={busy} onCredential={credential=>void authenticateWithGoogle(credential)}/></>}</form> : <>
           <div className="account-banner"><span>Đang đăng nhập: <strong>{account.displayName}</strong></span><button type="button" onClick={() => void logout()}>Đăng xuất</button></div>
           <div className="mode-switch" role="tablist" aria-label="Chọn thao tác">
             <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'selected' : ''} onClick={() => { setMode('create'); setError(''); setPreview(null) }}>Tạo phòng mới</button>
@@ -192,12 +193,12 @@ export default function HomePage() {
               {preview && <label>Tên bạn sẽ hiển thị<input required maxLength={60} value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="Ví dụ: An" autoComplete="nickname" /></label>}
             </>}
             {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="primary-button" type="submit" disabled={busy}>{busy ? 'Đang kết nối…' : mode === 'create' ? 'Tạo phòng và mời bạn' : preview ? 'Vào phòng' : 'Kiểm tra mã'}<span aria-hidden="true">↗</span></button>
+            <button className="primary-button" type="submit" disabled={busy}>{busy ? 'Đang kết nối…' : mode === 'create' ? 'Tạo phòng và mời bạn' : preview ? 'Vào phòng' : 'Kiểm tra mã'}<ArrowUpRight size={15} className="inline ml-1" /></button>
           </form>
           <p className="session-note">Phòng được lưu theo tài khoản. Đăng nhập tài khoản này trên thiết bị khác để tiếp tục.</p></>}
         </section>
       </section>
-      <footer className="home-footer"><span>Ít nhắn qua lại hơn. Nhiều thời gian vui hơn.</span><span>Được làm cho những cuộc hẹn đáng nhớ <b>♥</b></span></footer>
+      <footer className="home-footer"><span>Ít nhắn qua lại hơn. Nhiều thời gian vui hơn.</span><span>Được làm cho những cuộc hẹn đáng nhớ <b><Heart size={13} className="inline ml-1 text-rose-500 fill-rose-500 align-middle" /></b></span></footer>
     </main>
   )
 }

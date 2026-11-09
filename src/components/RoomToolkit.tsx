@@ -1,5 +1,15 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import {
+  Search,
+  MapPin,
+  Navigation,
+  Compass,
+  X,
+  Info,
+  AlertTriangle,
+  ChevronRight,
+} from 'lucide-react'
+import {
   api,
   createRoomExpense,
   createRoomSettlement,
@@ -738,7 +748,7 @@ export function RoomToolkit({
                 className={`map-mode-btn ${mapMode === 'event' ? 'active event' : ''}`}
                 onClick={() => setMapMode('event')}
               >
-                <span className="mode-dot event" />
+                <MapPin size={14} className="mode-btn-icon" />
                 <span>Chọn điểm hẹn trên bản đồ</span>
               </button>
               <button
@@ -746,7 +756,7 @@ export function RoomToolkit({
                 className={`map-mode-btn ${mapMode === 'meetup' ? 'active meetup' : ''}`}
                 onClick={() => setMapMode('meetup')}
               >
-                <span className="mode-dot meetup" />
+                <Navigation size={14} className="mode-btn-icon" />
                 <span>Chọn điểm xuất phát chung</span>
               </button>
             </div>
@@ -754,7 +764,9 @@ export function RoomToolkit({
             {/* Smart POI Search bar with clear button & feedback */}
             <div className="place-search">
               <div className="search-input-wrapper">
-                <span className="search-icon">🔍</span>
+                <span className="search-icon">
+                  <Search size={15} />
+                </span>
                 <input
                   value={placeQuery}
                   onChange={(e) => {
@@ -780,7 +792,7 @@ export function RoomToolkit({
                     }}
                     title="Xóa ô tìm kiếm"
                   >
-                    ✕
+                    <X size={12} strokeWidth={2.5} />
                   </button>
                 )}
               </div>
@@ -798,13 +810,14 @@ export function RoomToolkit({
                 onClick={useDeviceLocation}
                 title="Lấy vị trí GPS hiện tại của thiết bị"
               >
-                📍 Vị trí thiết bị
+                <Compass size={14} className="btn-icon" />
+                <span>Vị trí thiết bị</span>
               </button>
             </div>
 
             {searchMessage && (
               <div className="place-search-message" role="status">
-                <span>💡</span>
+                <Info size={15} className="msg-icon shrink-0" />
                 <span>{searchMessage}</span>
               </div>
             )}
@@ -813,8 +826,13 @@ export function RoomToolkit({
               <div className="place-results">
                 <div className="place-results-header">
                   <span>Kết quả tìm kiếm ({places.length})</span>
-                  <button type="button" onClick={() => setPlaces([])}>
-                    Đóng ✕
+                  <button
+                    type="button"
+                    onClick={() => setPlaces([])}
+                    className="close-results-btn"
+                  >
+                    <X size={12} />
+                    <span>Đóng</span>
                   </button>
                 </div>
                 <div className="place-results-list">
@@ -825,12 +843,17 @@ export function RoomToolkit({
                       className="place-result-item"
                       onClick={() => handleSelectPlace(p)}
                     >
-                      <div className="place-item-icon">📍</div>
+                      <div className="place-item-icon">
+                        <MapPin size={15} />
+                      </div>
                       <div className="place-item-content">
                         <strong className="place-item-name">{p.name}</strong>
                         {p.subtitle && <span className="place-item-sub">{p.subtitle}</span>}
                       </div>
-                      <span className="place-item-action">Ghim vị trí →</span>
+                      <span className="place-item-action">
+                        <span>Ghim vị trí</span>
+                        <ChevronRight size={13} />
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -1281,7 +1304,13 @@ export function RoomToolkit({
           {location && date && weather ? (
             <div className={`weather-card ${(weather.chance ?? 0) >= 50 ? 'weather-alert' : ''}`}>
               <strong>
-                {(weather.chance ?? 0) >= 50 ? '⚠ Có khả năng mưa cao' : 'Dự báo hiện tại'}
+                {(weather.chance ?? 0) >= 50 ? (
+                  <span className="weather-alert-heading">
+                    <AlertTriangle size={15} /> Có khả năng mưa cao
+                  </span>
+                ) : (
+                  'Dự báo hiện tại'
+                )}
               </strong>
               <p>
                 {weather.chance == null
