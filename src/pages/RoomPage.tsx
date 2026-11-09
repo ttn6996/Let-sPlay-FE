@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import gsap from 'gsap'
 import { commentOnProposal, createProposal, deleteProposal, getAccountToken, getApiError, getRoomToken, kickMember, leaveRoom, setProposalCompleted, toggleVote, updateProposal, updateRoomPhase, type Room } from '../api'
 import { useRoomRealtime } from '../hooks/useRoomRealtime'
 import { ConnectionStatus } from '../components/ConnectionStatus'
@@ -26,8 +27,35 @@ export default function RoomPage() {
   const [commentDrafts,setCommentDrafts]=useState<Record<string,string>>({})
   const [qrOpen,setQrOpen]=useState(false)
   const pushPromptAttempted=useRef(false)
+  const roomWelcomeRef = useRef<HTMLElement>(null)
+
   useEffect(()=>{if(!proposalNotice)return;const timer=window.setTimeout(()=>setProposalNotice(''),5500);return()=>window.clearTimeout(timer)},[proposalNotice,setProposalNotice])
   useEffect(()=>{if(room?.id&&token&&'Notification' in window&&Notification.permission==='granted')void enableRoomNotifications(roomId,token).catch(()=>undefined)},[room?.id,roomId,token])
+
+  useEffect(() => {
+    if (!room || !roomWelcomeRef.current) return
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    const ctx = gsap.context(() => {
+      gsap.from('.room-facts > div', {
+        y: 14,
+        opacity: 0,
+        stagger: 0.06,
+        duration: 0.6,
+        ease: 'power3.out',
+      })
+      gsap.from('.room-details-card', {
+        y: 16,
+        opacity: 0,
+        duration: 0.7,
+        delay: 0.15,
+        ease: 'power3.out',
+      })
+    }, roomWelcomeRef)
+
+    return () => ctx.revert()
+  }, [room])
 
   function onRoomGesture(){
     unlockNotificationSound()
@@ -127,7 +155,7 @@ export default function RoomPage() {
   const displayProposals=[...room.proposals].sort((left,right)=>Number(right.id===room.selectedProposalId)-Number(left.id===room.selectedProposalId))
   const inviteUrl=`${window.location.origin}/?code=${encodeURIComponent(room.inviteCode)}`
   return <main className="room-shell" onPointerDownCapture={onRoomGesture}><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">k</span><span>Kèo</span></Link><span className="room-member"><ConnectionStatus state={realtimeState}/><strong>{room.member.displayName}</strong></span></header>
-    <section className="room-welcome"><div className="room-heading"><div><p className="eyebrow"><span className="status-dot" /> {room.status==='CANCELLED'?'KẾ HOẠCH ĐÃ HỦY':'PHÒNG ĐANG MỞ'}</p><h1>{room.name}</h1><p>Chào {room.member.displayName}, cùng nhau chốt một cuộc vui.</p></div><div className="invite-actions"><button type="button" className="secondary-button" onClick={()=>void copyInvite()}>{copied?'Đã sao chép!':'Sao chép link mời'}</button><button type="button" className="secondary-button" onClick={()=>void copyInviteCode()}>Sao chép mã</button><button type="button" className="secondary-button" onClick={()=>setQrOpen(open=>!open)}>{qrOpen?'Ẩn QR':'Mã QR'}</button></div></div>
+    <section className="room-welcome" ref={roomWelcomeRef}><div className="room-heading"><div><p className="eyebrow"><span className="status-dot" /> {room.status==='CANCELLED'?'KẾ HOẠCH ĐÃ HỦY':'PHÒNG ĐANG MỞ'}</p><h1>{room.name}</h1><p>Chào {room.member.displayName}, cùng nhau chốt một cuộc vui.</p></div><div className="invite-actions"><button type="button" className="secondary-button" onClick={()=>void copyInvite()}>{copied?'Đã sao chép!':'Sao chép link mời'}</button><button type="button" className="secondary-button" onClick={()=>void copyInviteCode()}>Sao chép mã</button><button type="button" className="secondary-button" onClick={()=>setQrOpen(open=>!open)}>{qrOpen?'Ẩn QR':'Mã QR'}</button></div></div>
       {qrOpen&&<div className="qr-panel"><QRCodeSVG value={inviteUrl} size={180} includeMargin/><span>Quét mã để xem trước và tham gia phòng</span></div>}
       <div className="room-facts"><div><span>VAI TRÒ CỦA BẠN</span><strong>{room.member.role==='HOST'?'Chủ phòng':'Thành viên'}</strong></div><div><span>THÀNH VIÊN</span><strong>{room.memberCount}</strong></div><div><span>ĐANG TRỰC TUYẾN</span><strong>{onlineCount}/{room.memberCount}</strong></div><div><span>GIAI ĐOẠN</span><strong>{phaseLabel}</strong></div></div>
       {(room.eventDate||room.eventTime||room.region)&&<section className="room-details-card" aria-label="Thông tin cuộc hẹn"><p className="eyebrow">THÔNG TIN CUỘC HẸN</p><div className="room-details-items">{(room.eventDate||room.eventTime)&&<div className="room-detail-item"><span className="room-detail-icon">◷</span><span><small>THỜI GIAN DỰ KIẾN</small><strong>{room.eventDate?new Date(`${room.eventDate}T${room.eventTime??'12:00'}`).toLocaleString('vi-VN',room.eventTime?{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}:{weekday:'long',day:'numeric',month:'long'}):`${room.eventTime} · chưa chọn ngày`}</strong></span></div>}{room.region&&<a className="room-detail-item room-location-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(room.region)}`} target="_blank" rel="noreferrer"><span className="room-detail-icon">⌖</span><span><small>ĐỊA ĐIỂM / KHU VỰC</small><strong>{room.region}</strong><em>Mở Google Maps ↗</em></span></a>}</div></section>}

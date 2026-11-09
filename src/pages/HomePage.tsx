@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import gsap from 'gsap'
 import { api, claimRoom, forgetAuth, getAccountToken, getApiError, getGuestId, getGuestRoomSessions, getMyRooms, getSavedAccount, previewRoom, saveAuth, saveRoomSession, type Account, type AuthResponse, type MyRoomSummary, type Room, type RoomPreview } from '../api'
 import { enableRoomNotifications, preloadPushConfig, requestRoomPushPermission, unlockNotificationSound } from '../notifications'
 import { GoogleSignInButton } from '../components/GoogleSignInButton'
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [rooms, setRooms] = useState<MyRoomSummary[]>([])
   const [googleClientId,setGoogleClientId]=useState('')
   const navigate = useNavigate()
+  const heroGridRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     void preloadPushConfig()
@@ -34,6 +36,31 @@ export default function HomePage() {
     const token = getAccountToken()
     const guestTokens=getGuestRoomSessions().map(session=>session.token)
     void getMyRooms(token,guestTokens).then(response=>setRooms(response.data)).catch(()=>{if(token){forgetAuth();setAccount(null)}})
+  }, [])
+
+  useEffect(() => {
+    if (!heroGridRef.current) return
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    const ctx = gsap.context(() => {
+      gsap.from('.hero-copy > *', {
+        y: 20,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: 'power3.out',
+      })
+      gsap.from('.entry-card', {
+        y: 28,
+        opacity: 0,
+        duration: 0.85,
+        delay: 0.15,
+        ease: 'power3.out',
+      })
+    }, heroGridRef)
+
+    return () => ctx.revert()
   }, [])
 
   useEffect(()=>{
@@ -134,7 +161,7 @@ export default function HomePage() {
   return (
     <main className="home-shell">
       <header className="topbar"><Link className="brand" to="/" aria-label="Kèo, trang chủ"><span className="brand-mark">k</span><span>Kèo</span></Link><span className="top-note">Một buổi vui, cùng nhau lên kế hoạch</span></header>
-      <section className="hero-grid">
+      <section className="hero-grid" ref={heroGridRef}>
         <div className="hero-copy">
           <p className="eyebrow"><span className="status-dot" /> HẸN NHAU DỄ HƠN</p>
           <h1>Chọn một ngày.<br /><em>Chốt một cuộc vui.</em></h1>
