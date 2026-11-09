@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#244D39" />
+      <stop offset="45%" stop-color="#1B382B" />
+      <stop offset="100%" stop-color="#0F241B" />
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3D6850" />
+      <stop offset="60%" stop-color="#234534" />
+      <stop offset="100%" stop-color="#C87442" stop-opacity="0.8" />
+    </linearGradient>
+    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6AE6D" />
+      <stop offset="100%" stop-color="#C87442" />
+    </linearGradient>
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F2EDE4" />
+    </linearGradient>
+    <radialGradient id="innerGlow" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#3A7255" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#0F241B" stop-opacity="0" />
+    </radialGradient>
+    <filter id="tileShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0B1711" flood-opacity="0.3" />
+    </filter>
+    <filter id="letterShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#08140E" flood-opacity="0.45" />
+    </filter>
+    <filter id="sparkleGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#C87442" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Modern Tactile Leaf Pebble Squircle Tile -->
+  <g filter="url(#tileShadow)">
+    <path d="M 148 32
+             C 64 32, 32 64, 32 148
+             L 32 364
+             C 32 448, 64 480, 148 480
+             L 364 480
+             C 448 480, 480 448, 480 364
+             L 480 148
+             C 480 64, 448 32, 364 32
+             Z"
+          fill="url(#bgGrad)"
+          stroke="url(#borderGrad)"
+          stroke-width="7" />
+    <path d="M 148 32
+             C 64 32, 32 64, 32 148
+             L 32 364
+             C 32 448, 64 480, 148 480
+             L 364 480
+             C 448 480, 480 448, 480 364
+             L 480 148
+             C 480 64, 448 32, 364 32
+             Z"
+          fill="url(#innerGlow)" />
+  </g>
+
+  <!-- Fine Inner Thread / Archival Double Line Accent -->
+  <path d="M 152 46
+           C 74 46, 46 74, 46 152
+           L 46 360
+           C 46 438, 74 466, 152 466
+           L 360 466
+           C 438 466, 466 438, 466 360
+           L 466 152
+           C 466 74, 438 46, 360 46
+           Z"
+        fill="none"
+        stroke="#FAF8F5"
+        stroke-opacity="0.08"
+        stroke-width="2" />
+
+  <!-- The Editorial Refined & Youthful Letter 'k' -->
+  <g filter="url(#letterShadow)">
+    <path d="M 142 110
+             C 142 96, 154 90, 172 90
+             C 190 90, 202 98, 202 116
+             L 202 260
+             C 226 232, 260 196, 296 168
+             C 316 152, 336 142, 356 142
+             C 374 142, 386 154, 386 172
+             C 386 188, 372 202, 350 220
+             L 264 286
+             L 354 382
+             C 372 400, 388 410, 404 410
+             L 404 424
+             C 392 428, 376 430, 360 430
+             C 334 430, 314 416, 296 394
+             L 232 312
+             L 202 340
+             L 202 396
+             C 202 414, 212 422, 230 422
+             L 230 428
+             L 136 428
+             L 136 422
+             C 154 422, 164 414, 164 396
+             L 164 126
+             C 164 116, 154 110, 142 110
+             Z"
+          fill="url(#letterGrad)" />
+  </g>
+
+  <!-- Terracotta Amber 'Chốt Kèo' 4-Point Sparkle / Vibe Badge -->
+  <g filter="url(#sparkleGlow)">
+    <path d="M 406 82
+             Q 406 112 436 112
+             Q 406 112 406 142
+             Q 406 112 376 112
+             Q 406 112 406 82
+             Z"
+          fill="url(#sparkleGrad)" />
+    <!-- Center Radiance Core -->
+    <circle cx="406" cy="112" r="3.5" fill="#FFFFFF" />
+  </g>
+</svg>

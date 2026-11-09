@@ -160,7 +160,7 @@ export default function HomePage() {
 
   return (
     <main className="home-shell">
-      <header className="topbar"><Link className="brand" to="/" aria-label="Kèo, trang chủ"><span className="brand-mark">k</span><span>Kèo</span></Link><span className="top-note">Một buổi vui, cùng nhau lên kế hoạch</span></header>
+      <header className="topbar"><Link className="brand" to="/" aria-label="Kèo, trang chủ"><span className="brand-mark"><img src="/favicon.svg" alt="k" width="34" height="34" /></span><span>Kèo</span></Link><span className="top-note">Một buổi vui, cùng nhau lên kế hoạch</span></header>
       <section className="hero-grid" ref={heroGridRef}>
         <div className="hero-copy">
           <p className="eyebrow"><span className="status-dot" /> HẸN NHAU DỄ HƠN</p>
