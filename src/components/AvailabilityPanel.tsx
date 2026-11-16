@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Plus, Clock, Sparkles } from 'lucide-react'
+import {
+  CheckOutlined,
+  PlusOutlined,
+  ClockCircleOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons'
 import {
   addAvailabilitySlots,
   commentOnAvailabilitySlot,
@@ -159,10 +164,19 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
   return (
     <section className="availability-panel" aria-labelledby="availability-title">
       <div className="availability-heading">
-        <div>
-          <p className="eyebrow"><span className="status-dot" /> TÌM GIỜ HẸN PHÙ HỢP</p>
-          <h2 id="availability-title">{room.availabilityTitle || DEFAULT_TITLE}</h2>
-          <p className="availability-desc">
+        <div className="flex flex-col gap-1 flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <p className="eyebrow !my-0">
+              <span className="status-dot" /> TÌM GIỜ HẸN PHÙ HỢP
+            </p>
+            <h4
+              id="availability-title"
+              className="!text-sm sm:!text-base md:!text-lg !font-bold !text-stone-900 !my-0 font-display tracking-tight"
+            >
+              {room.availabilityTitle || DEFAULT_TITLE}
+            </h4>
+          </div>
+          <p className="availability-desc !text-xs sm:!text-sm text-stone-500 !mt-0.5">
             Mọi thành viên có thể thêm khung giờ và chọn nhiều thời điểm phù hợp. Phiếu bình chọn luôn ẩn danh để mọi người thoải mái biểu quyết.
           </p>
         </div>
@@ -241,7 +255,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             disabled={busy || !draftSlots.length || !draftTitle.trim()}
             onClick={() => void saveOptions()}
           >
-            {busy ? 'Đang lưu…' : 'Lưu tiêu đề và khung giờ'} <Check size={14} className="inline-icon" />
+            {busy ? 'Đang lưu…' : 'Lưu tiêu đề và khung giờ'} <CheckOutlined style={{ fontSize: 14 }} className="inline-icon" />
           </button>
         </div>
       )}
@@ -264,7 +278,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             />
           </div>
           <button type="submit" className="secondary-button add-slot-btn" disabled={busy || !newSlotTime}>
-            <Plus size={14} className="inline-icon mr-1" /> Thêm khung giờ
+            <PlusOutlined style={{ fontSize: 14 }} className="inline-icon mr-1" /> Thêm khung giờ
           </button>
           <small className="add-slot-help">Mọi thành viên trong phòng đều có thể đề xuất khung giờ mới.</small>
         </form>
@@ -272,7 +286,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
 
       {!slots.length ? (
         <div className="availability-empty">
-          <Clock size={24} className="empty-icon" />
+          <ClockCircleOutlined style={{ fontSize: 24 }} className="empty-icon" />
           <strong>Chưa có khung giờ nào được tạo</strong>
           <p>{isHost ? 'Hãy thêm vài ngày và giờ dự kiến ở ô phía trên để cả nhóm cùng chọn.' : 'Chủ phòng chưa tạo danh sách giờ. Bạn sẽ có thể chọn khi khung giờ xuất hiện.'}</p>
         </div>
@@ -282,7 +296,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             <div className="availability-recommendation">
               <div className="recommendation-badge-wrap">
                 <span className="recommendation-badge">
-                  <Sparkles size={13} className="badge-sparkle" /> ĐANG ĐƯỢC CHỌN NHIỀU NHẤT
+                  <ThunderboltOutlined style={{ fontSize: 13 }} className="badge-sparkle" /> ĐANG ĐƯỢC CHỌN NHIỀU NHẤT
                 </span>
                 <strong className="recommendation-time">{localSlot(recommendation.startsAt)}</strong>
               </div>
@@ -294,7 +308,12 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
             </div>
           )}
 
-          <div className="availability-list" role="group" aria-label="Danh sách khung giờ bình chọn">
+          <div
+            className="availability-list !max-h-[460px] md:!max-h-[500px] !overflow-y-auto !pr-2 overscroll-contain"
+            style={{ scrollbarWidth: 'thin', scrollbarColor: '#d6d3d1 transparent' }}
+            role="group"
+            aria-label="Danh sách khung giờ bình chọn"
+          >
             {slots.map(slot => {
               const percent = room.memberCount ? Math.round((slot.availableCount / room.memberCount) * 100) : 0
               const isSelected = selection.includes(slot.id)
@@ -400,7 +419,7 @@ export function AvailabilityPanel({ room, roomId, token, onRoom }: Props) {
                 disabled={busy || !selectionChanged}
                 onClick={() => void saveSelection()}
               >
-                {busy ? 'Đang lưu…' : 'Lưu lựa chọn của bạn'} <Check size={14} className="inline-icon" />
+                {busy ? 'Đang lưu…' : 'Lưu lựa chọn của bạn'} <CheckOutlined style={{ fontSize: 14 }} className="inline-icon" />
               </button>
             </div>
           )}

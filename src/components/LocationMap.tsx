@@ -3,7 +3,7 @@ import { Map as MapLibreMap, Marker, NavigationControl, type MapMouseEvent } fro
 import { setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { MapPin, Navigation, ExternalLink } from 'lucide-react'
+import { EnvironmentOutlined, CompassOutlined, LinkOutlined } from '@ant-design/icons'
 import type { Point } from './RoomToolkit'
 
 setWorkerUrl(workerUrl)
@@ -126,11 +126,11 @@ export function LocationMap({ location, meetup, mode, onSelect }: LocationMapPro
           <span className="status-label">
             {mode === 'event' ? (
               <span className="status-label-inner">
-                <MapPin size={13} className="status-icon" /> Điểm hẹn:
+                <EnvironmentOutlined style={{ fontSize: 13 }} className="status-icon" /> Điểm hẹn:
               </span>
             ) : (
               <span className="status-label-inner">
-                <Navigation size={13} className="status-icon" /> Điểm đón chung:
+                <CompassOutlined style={{ fontSize: 13 }} className="status-icon" /> Điểm đón chung:
               </span>
             )}
           </span>
@@ -146,7 +146,7 @@ export function LocationMap({ location, meetup, mode, onSelect }: LocationMapPro
             className="map-ext-link"
           >
             <span>Mở trên Google Maps</span>
-            <ExternalLink size={12} className="inline-icon" />
+            <LinkOutlined style={{ fontSize: 12 }} className="inline-icon" />
           </a>
         )}
       </div>
